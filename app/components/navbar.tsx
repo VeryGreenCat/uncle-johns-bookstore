@@ -1,28 +1,29 @@
 import { HeartOutlined, ShoppingCartOutlined } from "@ant-design/icons";
-import { Button } from "antd";
 import Link from "next/link";
+import Login from "./Login";
 
 const Navbar = () => {
   return (
-    <nav className="bg-gray-300 px-6 py-3 flex items-center justify-between">
-      <Link href={"/"} className="text-lg font-bold">
-        Uncle John's
+    <nav className="bg-[#84592B] px-6 py-3 flex items-center justify-between">
+      <Link href={"/"} className="text-lg font-bold text-white">
+        Uncle John's Bookstore
       </Link>
 
       <div className="flex items-center space-x-4">
-        <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-400 transition">
-          <Link href={"/favourite"}>
-            <HeartOutlined />
-          </Link>
-        </button>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-400 transition">
-          <Link href={"/cart"}>
-            <ShoppingCartOutlined />
-          </Link>
-        </button>
-        <Button type="primary">
-          <Link href={"/login"}>login</Link>
-        </Button>
+        <Link href={"/favourite"}>
+          <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#E8D1A7] transition">
+            <HeartOutlined style={{ color: "white", fontSize: "1.3rem" }} />
+          </button>
+        </Link>
+        <Link href={"/cart"}>
+          <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#E8D1A7] transition">
+            <ShoppingCartOutlined
+              style={{ color: "white", fontSize: "1.3rem" }}
+            />
+          </button>
+        </Link>
+
+        <Login />
       </div>
     </nav>
   );

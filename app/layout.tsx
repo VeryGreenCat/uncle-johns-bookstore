@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 const RootLayout = ({ children }: React.PropsWithChildren) => (
   <html lang="en">
     <body>
-      <div>
+      <div className="bg-[#FAEBD7]">
         <Navbar />
         <AntdRegistry>{children}</AntdRegistry>
         <Footer />

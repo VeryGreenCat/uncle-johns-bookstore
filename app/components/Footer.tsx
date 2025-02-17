@@ -1,16 +1,15 @@
+import Image from "next/image";
 import Link from "next/link";
+
+import logo from "/public/media/images/uncle_johns_logo.png";
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-900 text-white py-8 px-6 mt-8">
+    <footer className="bg-[#442D1C] text-white py-8 px-6 mt-8">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Logo & Description */}
         <div>
-          <img
-            src="https://dummyimage.com/20/000/fff.png"
-            alt="Bookstore Logo"
-            className="h-12 mb-3"
-          />
+          <Image src={logo} alt="Bookstore Logo" width={100} height={100} />
           <p className="text-gray-400 text-sm">
             Discover a world of books at our bookstore. We offer a wide range of
             genres, bestsellers, and rare finds.

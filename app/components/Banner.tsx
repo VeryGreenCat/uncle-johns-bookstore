@@ -8,7 +8,7 @@ const Banner = () => {
   };
 
   return (
-    <div className="px-4 md:px-6 py-5">
+    <div className="md:px-6 py-5">
       <Carousel
         autoplay={{ dotDuration: true }}
         autoplaySpeed={3000}
@@ -25,7 +25,7 @@ const Banner = () => {
               src={src}
               alt={`Slide ${index + 1}`}
               style={contentStyle}
-              className="w-full h-auto md:h-[350px]"
+              className="w-full h-48 md:h-72"
             />
           </div>
         ))}
