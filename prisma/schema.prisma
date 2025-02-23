@@ -1,0 +1,80 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  userId      String   @id @default(uuid())
+  name        String
+  surname     String
+  sex         String
+  birthday    DateTime
+  password    String
+  email       String   @unique
+  phoneNumber String   @unique
+  address     String?
+  wishlist    Wishlist[]
+  orders      Order[]
+}
+
+model Admin {
+  adminId  String  @id @default(uuid())
+  email    String  @unique
+  password String
+  books    Book[]  @relation("updatedByAdmin")
+}
+
+model Category {
+  categoryId String  @id @default(uuid())
+  name       String
+  books      Book[]
+}
+
+model Book {
+  bookId      String   @id @default(uuid())
+  name        String
+  author      String
+  price       Float
+  quantity    Int
+  publisher   String
+  rating      Float?
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [categoryId])
+  wishlist    Wishlist[]
+  orderDetails OrderDetail[]
+  updatedBy   Admin?    @relation("updatedByAdmin", fields: [adminId], references: [adminId])
+  adminId     String?
+}
+
+model Wishlist {
+  id     String @id @default(uuid())
+  userId String
+  bookId String
+  user   User   @relation(fields: [userId], references: [userId])
+  book   Book   @relation(fields: [bookId], references: [bookId])
+}
+
+model Order {
+  orderId      String        @id @default(uuid())
+  orderDate    DateTime
+  price        Float
+  userId       String
+  user         User          @relation(fields: [userId], references: [userId])
+  orderDetails OrderDetail[]
+}
+
+model OrderDetail {
+  id        String  @id @default(uuid())
+  orderId   String
+  bookId    String
+  quantity  Int
+  price     Float
+  order     Order   @relation(fields: [orderId], references: [orderId])
+  book      Book    @relation(fields: [bookId], references: [bookId])
+}

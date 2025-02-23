@@ -79,7 +79,11 @@ const Login = () => {
           {/* Signup Link */}
           <p className="mt-4 text-sm text-gray-700">
             สมัครสมาชิกใหม่ด้วยอีเมลล์{" "}
-            <Link href="/register" className="text-red-500 font-semibold">
+            <Link
+              href="/register"
+              className="text-red-500 font-semibold"
+              onClick={handleCancel}
+            >
               สมัครที่นี่
             </Link>
           </p>
