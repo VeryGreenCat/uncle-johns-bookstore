@@ -13,10 +13,10 @@ model User {
   userId      String   @id @default(uuid())
   name        String
   surname     String
-  sex         String
-  birthday    DateTime
-  password    String
   email       String   @unique
+  password    String
+  birthday    DateTime
+  gender      String
   phoneNumber String   @unique
   address     String?
   wishlist    Wishlist[]
