@@ -1,66 +1,53 @@
 "use client";
 
-import { DatePicker } from "antd";
+import { DatePicker, Select, Form, Input, Button, Alert, message } from "antd";
 import { useState } from "react";
-import dayjs from "dayjs";
+import { User } from "@/utils/types";
+
 
 const register = () => {
-  const [form, setForm] = useState({
-    name: "",
-    surname: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    birthday: "",
-    gender: "",
-    phoneNumber: "",
-    agreeTerms: false,
-    receiveUpdates: false,
-  });
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setForm((prevForm) => ({
-      ...prevForm,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const handleDateChange = (date: dayjs.Dayjs | null) => {
-    setForm((prevForm) => ({
-      ...prevForm,
-      birthday: date ? date.toISOString() : "", // Convert to ISO string for Prisma
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-
-    if (!form.agreeTerms) {
-      alert("You must agree to the terms and conditions.");
-      return;
-    }
+  const handleSubmit = async (values: User) => {
+    console.log(values);
+    setLoading(true);
+    setSuccess(false);
+    setError(null);
 
     try {
-      const response = await fetch("/api/register", {
+      const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(values),
       });
 
       if (response.ok) {
-        alert("Registration successful!");
+        setSuccess(true);
+        message.success("Registration successful!");
       } else {
-        alert("Registration failed!");
+        const errorData = await response.json();
+        setError(errorData.error || "Registration failed.");
+        // <Alert message="Registration failed!" type="error" showIcon />;
+        message.error("Registration failed!");
       }
     } catch (error) {
-      console.error("Error:", error);
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="bg-gray-200 p-8 rounded-lg shadow-lg max-w-lg w-full text-center">
+      {success && (
+        <Alert message="Registration successful!" type="success" showIcon />
+      )}
+      {error && <Alert message={error} type="error" showIcon />}
+
+      <div className="bg-gray-200 p-8 my-8 rounded-lg shadow-lg max-w-lg w-full text-center">
         {/* Logo */}
         <div className="flex justify-center mb-4">
           <div className="w-24 h-24 bg-gray-400 rounded-full flex items-center justify-center text-gray-700 text-lg">
@@ -68,149 +55,118 @@ const register = () => {
           </div>
         </div>
 
-        {/* Title */}
         <h2 className="text-xl font-bold mb-4">ลงทะเบียนเข้าใช้งาน</h2>
 
-        {/* Name Fields */}
-        <div className="grid grid-cols-2 gap-4 mb-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              ชื่อ
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md bg-gray-300 text-gray-700 focus:outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              นามสกุล
-            </label>
-            <input
-              type="text"
-              name="surname"
-              value={form.surname}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md bg-gray-300 text-gray-700 focus:outline-none"
-            />
-          </div>
-        </div>
+        {/* Form Start */}
+        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+          {/* Name */}
+          <Form.Item
+            name="name"
+            label="ชื่อ"
+            rules={[{ required: true, message: "กรุณากรอกชื่อ" }]}
+          >
+            <Input placeholder="ชื่อ" />
+          </Form.Item>
 
-        {/* Email */}
-        <div className="mb-3">
-          <label className="block text-sm font-medium text-gray-700">
-            อีเมล
-          </label>
-          <input
-            type="email"
+          <Form.Item
+            name="surname"
+            label="นามสกุล"
+            rules={[{ required: true, message: "กรุณากรอกนามสกุล" }]}
+          >
+            <Input placeholder="นามสกุล" />
+          </Form.Item>
+
+          {/* Email */}
+          <Form.Item
             name="email"
-            value={form.email}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-md bg-gray-300 text-gray-700 focus:outline-none"
-          />
-        </div>
+            label="อีเมล"
+            rules={[
+              {
+                required: true,
+                type: "email",
+                message: "กรุณากรอกอีเมลที่ถูกต้อง",
+              },
+            ]}
+          >
+            <Input placeholder="อีเมล" />
+          </Form.Item>
 
-        {/* Password Fields */}
-        <div className="grid grid-cols-2 gap-4 mb-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              รหัสผ่าน
-            </label>
-            <input
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md bg-gray-300 text-gray-700 focus:outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              ยืนยันรหัสผ่าน
-            </label>
-            <input
-              type="password"
-              name="confirmPassword"
-              value={form.confirmPassword}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md bg-gray-300 text-gray-700 focus:outline-none"
-            />
-          </div>
-        </div>
+          {/* Password */}
+          <Form.Item
+            name="password"
+            label="รหัสผ่าน"
+            rules={[{ required: true, message: "กรุณากรอกรหัสผ่าน" }]}
+          >
+            <Input.Password placeholder="รหัสผ่าน" />
+          </Form.Item>
 
-        {/* Birthdate & Gender */}
-        <div className="grid grid-cols-2 gap-4 mb-3">
-          <div className="flex flex-col items-center">
-            <label className="block text-sm font-medium text-gray-700">
-              วันเดือนปีเกิด
-            </label>
+          <Form.Item
+            name="confirmPassword"
+            label="ยืนยันรหัสผ่าน"
+            dependencies={["password"]}
+            rules={[
+              { required: true, message: "กรุณายืนยันรหัสผ่าน" },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  return value && value === getFieldValue("password")
+                    ? Promise.resolve()
+                    : Promise.reject(new Error("รหัสผ่านไม่ตรงกัน"));
+                },
+              }),
+            ]}
+          >
+            <Input.Password placeholder="ยืนยันรหัสผ่าน" />
+          </Form.Item>
+
+          {/* Birthdate & Gender */}
+          <Form.Item
+            name="birthday"
+            label="วันเดือนปีเกิด"
+            rules={[{ required: true, message: "กรุณาเลือกวันเกิด" }]}
+          >
             <DatePicker
-              onChange={handleDateChange}
-              className="w-full px-3 py-2 border rounded-md bg-gray-300 text-gray-700 focus:outline-none text-center"
+              placeholder="dd/mm/yyyy"
+              format={"DD/MM/YYYY"}
+              className="w-full"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              เพศ
-            </label>
-            <input
-              type="text"
-              name="gender"
-              value={form.gender}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md bg-gray-300 text-gray-700 focus:outline-none"
-            />
-          </div>
-        </div>
+          </Form.Item>
 
-        {/* Phone */}
-        <div className="mb-3">
-          <label className="block text-sm font-medium text-gray-700">
-            เบอร์โทร
-          </label>
-          <input
-            type="text"
+          <Form.Item
+            name="gender"
+            label="เพศ"
+            rules={[{ required: true, message: "กรุณาเลือกเพศ" }]}
+          >
+            <Select
+              placeholder="เลือกเพศ"
+              options={[
+                { value: "m", label: "ชาย" },
+                { value: "f", label: "หญิง" },
+                { value: "o", label: "อื่นๆ" },
+              ]}
+            />
+          </Form.Item>
+
+          {/* Phone Number */}
+          <Form.Item
             name="phoneNumber"
-            value={form.phoneNumber}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-md bg-gray-300 text-gray-700 focus:outline-none"
-          />
-        </div>
+            label="เบอร์โทร"
+            rules={[{ required: true, message: "กรุณากรอกเบอร์โทร" }]}
+          >
+            <Input placeholder="เบอร์โทร" />
+          </Form.Item>
 
-        {/* Checkboxes */}
-        <div className="flex items-center gap-2 mb-3">
-          <input
-            type="checkbox"
-            name="agreeTerms"
-            checked={form.agreeTerms}
-            onChange={handleChange}
-            className="w-4 h-4"
-          />
-          <span className="text-sm text-gray-700">
-            ยอมรับเงื่อนไขและข้อตกลง
-          </span>
-        </div>
-        <div className="flex items-center gap-2 mb-4">
-          <input
-            type="checkbox"
-            name="receiveUpdates"
-            checked={form.receiveUpdates}
-            onChange={handleChange}
-            className="w-4 h-4"
-          />
-          <span className="text-sm text-gray-700">รับข่าวสารและโปรโมชั่น</span>
-        </div>
-
-        {/* Register Button */}
-        <button
-          className="w-full bg-gray-400 text-white py-2 rounded-md hover:bg-gray-500 transition"
-          onClick={handleSubmit}
-        >
-          ลงทะเบียน
-        </button>
+          {/* Submit Button */}
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="w-full"
+              loading={loading}
+            >
+              ลงทะเบียน
+            </Button>
+          </Form.Item>
+        </Form>
       </div>
     </div>
   );

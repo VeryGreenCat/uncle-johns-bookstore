@@ -1,16 +1,35 @@
 // app/api/auth/regis/route.ts
-
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { prisma } from "@/utils/db";
 
+// register
 export async function POST(req: Request) {
   try {
-    const { name, surname, email, password } = await req.json();
+    const { name, surname, email, password, birthday, gender, phoneNumber } =
+      await req.json();
 
-    if (!name || !surname || !password) {
+    // Validate required fields
+    if (
+      !name ||
+      !surname ||
+      !email ||
+      !password ||
+      !birthday ||
+      !gender ||
+      !phoneNumber
+    ) {
       return NextResponse.json(
-        { error: "Name, surname, and password are required" },
+        { error: "All fields are required" },
+        { status: 400 }
+      );
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json(
+        { error: "Invalid email format" },
         { status: 400 }
       );
     }
@@ -30,16 +49,25 @@ export async function POST(req: Request) {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create a new user in the database
+    // Convert birthday to Date object
+    const parsedBirthday = new Date(birthday);
+    if (isNaN(parsedBirthday.getTime())) {
+      return NextResponse.json(
+        { error: "Invalid birthday format" },
+        { status: 400 }
+      );
+    }
+
+    // Create new user
     const user = await prisma.user.create({
       data: {
         name,
         surname,
         email,
         password: hashedPassword,
-        birthday: new Date(), // Replace with actual birthday value
-        gender: "Not specified", // Replace with actual gender value
-        phoneNumber: "000-000-0000", // Replace with actual phone number value
+        birthday: parsedBirthday,
+        gender,
+        phoneNumber,
       },
     });
 
