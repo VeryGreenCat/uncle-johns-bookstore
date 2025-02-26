@@ -11,7 +11,7 @@ const register = () => {
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (values: User) => {
-    console.log(values);
+    //console.log(values);
     setLoading(true);
     setSuccess(false);
     setError(null);

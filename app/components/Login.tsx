@@ -1,80 +1,124 @@
 "use client";
 
-import { Button, Modal } from "antd";
+import { Button, Modal, Input, Form } from "antd";
 import { useState } from "react";
 import Link from "next/link";
-
 import Image from "next/image";
 import logo from "/public/media/images/uncle_johns_logo.png";
 
 const Login = () => {
-  const [open, setOpen] = useState(false);
-  const [confirmLoading, setConfirmLoading] = useState(false);
+  const [form] = Form.useForm();
+  const [open, setOpen] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const showModal = () => {
-    setOpen(true);
-  };
+  const showModal = () => setOpen(true);
+  const handleCancel = () => setOpen(false);
 
-  const handleOk = () => {
-    setConfirmLoading(true);
-    setTimeout(() => {
-      setOpen(false);
-      setConfirmLoading(false);
-    }, 2000);
-  };
+  const handleLogin = async () => {
+    setLoading(true);
 
-  const handleCancel = () => {
-    setOpen(false);
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: form.getFieldValue("email"),
+          password: form.getFieldValue("password"),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("เข้าสู่ระบบสำเร็จ!");
+        form.resetFields(); // Clear input fields after success
+        setOpen(false);
+      } else {
+        alert(data.error || "เกิดข้อผิดพลาด");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("เกิดข้อผิดพลาด กรุณาลองใหม่");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <>
-      <Button type="primary" onClick={showModal}>
+      <Button
+        type="primary"
+        onClick={showModal}
+        className="bg-red-500 hover:bg-red-600"
+      >
         Login
       </Button>
       <Modal
         title="เข้าสู่ระบบ"
         open={open}
-        onOk={handleOk}
-        confirmLoading={confirmLoading}
         onCancel={handleCancel}
+        footer={null}
+        centered
       >
         <div className="text-center">
           {/* Logo */}
-          <div className="flex justify-center mb-4 overflow-hidden">
-            <div className="w-24 h-24 bg-gray-400 rounded-full flex items-center justify-center text-gray-700 text-lg ">
-              <Image src={logo} alt="Bookstore Logo" width={100} height={100} />
-            </div>
-          </div>
-
-          {/* Username Input */}
-          <div className="mb-3 text-left">
-            <label className="block text-sm font-medium text-gray-700">
-              ชื่อผู้ใช้งาน
-            </label>
-            <input
-              type="text"
-              className="w-full px-3 py-2 border rounded-md bg-gray-300 text-gray-700 focus:outline-none"
-              placeholder="ชื่อผู้ใช้งาน"
+          <div className="flex justify-center mb-4">
+            <Image
+              src={logo}
+              alt="Bookstore Logo"
+              width={100}
+              height={100}
+              className="rounded-full"
             />
           </div>
 
-          {/* Password Input */}
-          <div className="mb-4 text-left">
-            <label className="block text-sm font-medium text-gray-700">
-              รหัสผ่าน
-            </label>
-            <input
-              type="password"
-              className="w-full px-3 py-2 border rounded-md bg-gray-300 text-gray-700 focus:outline-none"
-              placeholder="รหัสผ่าน"
-            />
-          </div>
+          <Form form={form} layout="vertical" onFinish={handleLogin}>
+            {/* Email */}
+            <Form.Item
+              name="email"
+              label="อีเมล"
+              rules={[
+                {
+                  required: true,
+                  type: "email",
+                  message: "กรุณากรอกอีเมลที่ถูกต้อง",
+                },
+              ]}
+            >
+              <Input placeholder="อีเมล" />
+            </Form.Item>
+
+            {/* Password */}
+            <Form.Item
+              name="password"
+              label="รหัสผ่าน"
+              rules={[{ required: true, message: "กรุณากรอกรหัสผ่าน" }]}
+            >
+              <Input.Password placeholder="รหัสผ่าน" />
+            </Form.Item>
+
+            {/* Submit Button */}
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                className="w-full"
+                loading={loading}
+              >
+                เข้าสู่ระบบ
+              </Button>
+            </Form.Item>
+          </Form>
 
           {/* Login Button */}
-          <button className="w-full bg-gray-400 text-white py-2 rounded-md hover:bg-gray-500 transition">
-            เข้าสู่ระบบ
-          </button>
+          {/* <Button
+            type="primary"
+            onClick={handleLogin}
+            className="w-full bg-red-500 hover:bg-red-600 h-10 flex items-center justify-center"
+            disabled={loading}
+          >
+            {loading ? <Spin size="small" /> : "เข้าสู่ระบบ"}
+          </Button> */}
 
           {/* Signup Link */}
           <p className="mt-4 text-sm text-gray-700">
