@@ -44,6 +44,7 @@ model Book {
   quantity    Int
   publisher   String
   rating      Float?
+  bookDetails String
   categoryId  String
   category    Category @relation(fields: [categoryId], references: [categoryId])
   wishlist    Wishlist[]
@@ -53,11 +54,11 @@ model Book {
 }
 
 model Wishlist {
-  id     String @id @default(uuid())
   userId String
   bookId String
   user   User   @relation(fields: [userId], references: [userId])
   book   Book   @relation(fields: [bookId], references: [bookId])
+  @@id([userId, bookId]) // composite key
 }
 
 model Order {
@@ -70,11 +71,11 @@ model Order {
 }
 
 model OrderDetail {
-  id        String  @id @default(uuid())
   orderId   String
   bookId    String
   quantity  Int
   price     Float
   order     Order   @relation(fields: [orderId], references: [orderId])
   book      Book    @relation(fields: [bookId], references: [bookId])
+  @@id([orderId,bookId]) // composite key
 }
