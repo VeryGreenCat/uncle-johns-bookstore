@@ -66,10 +66,10 @@ const favourite = () => {
       ),
     },
     {
-      title: "Actions",
+      title: "",
       key: "actions",
       render: (_: any, record: any) => (
-        <div className="flex space-x-2">
+        <div className="flex space-x-5 justify-end">
           <Button
             type="primary"
             icon={<ShoppingCartOutlined />}
@@ -88,7 +88,7 @@ const favourite = () => {
   ];
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6 max-w-full mx-auto">
       <Card
         title={
           <h2 className="text-xl font-semibold text-center">My Wishlist</h2>
