@@ -15,7 +15,7 @@ const Navbar = () => {
             <HeartOutlined style={{ color: "white", fontSize: "1.3rem" }} />
           </button>
         </Link>
-        <Link href={"/cart"}>
+        <Link href={"/payment"}>
           <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#E8D1A7] transition">
             <ShoppingCartOutlined
               style={{ color: "white", fontSize: "1.3rem" }}
