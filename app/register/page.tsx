@@ -4,7 +4,6 @@ import { DatePicker, Select, Form, Input, Button, Alert, message } from "antd";
 import { useState } from "react";
 import { User } from "@/utils/types";
 
-
 const register = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);

@@ -51,6 +51,7 @@ export async function POST(req: Request) {
 
     // Convert birthday to Date object
     const parsedBirthday = new Date(birthday);
+    parsedBirthday.setDate(parsedBirthday.getDate() + 1);
     if (isNaN(parsedBirthday.getTime())) {
       return NextResponse.json(
         { error: "Invalid birthday format" },
@@ -73,7 +74,12 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: "User registered successfully", user });
   } catch (error) {
-    console.error(error);
+    if (error instanceof Error) {
+      console.error(error.message); // Log the error message if it's an instance of Error
+    } else {
+      console.error("Unknown error occurred", error); // For non-Error objects
+    }
+
     return NextResponse.json(
       { error: "An error occurred during registration" },
       { status: 500 }
