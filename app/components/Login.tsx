@@ -1,15 +1,15 @@
 "use client";
 
-import { Button, Modal, Input, Form } from "antd";
+import { Button, Modal, Input, Form, message } from "antd";
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import logo from "/public/media/images/uncle_johns_logo.png";
+import logo from "/public/media/images/uncle_johns_logo_black.png";
 
 const Login = () => {
   const [form] = Form.useForm();
-  const [open, setOpen] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const showModal = () => setOpen(true);
   const handleCancel = () => setOpen(false);
@@ -27,18 +27,18 @@ const Login = () => {
         }),
       });
 
-      const data = await response.json();
+      const serverResponse = await response.json();
 
       if (response.ok) {
-        alert("เข้าสู่ระบบสำเร็จ!");
-        form.resetFields(); // Clear input fields after success
+        message.success(serverResponse.message);
+        form.resetFields();
         setOpen(false);
       } else {
-        alert(data.error || "เกิดข้อผิดพลาด");
+        message.error(serverResponse.error);
       }
     } catch (error) {
       console.error("Login error:", error);
-      alert("เกิดข้อผิดพลาด กรุณาลองใหม่");
+      message.error("An error occurred during login.");
     } finally {
       setLoading(false);
     }
@@ -46,11 +46,7 @@ const Login = () => {
 
   return (
     <>
-      <Button
-        type="primary"
-        onClick={showModal}
-        className="bg-red-500 hover:bg-red-600"
-      >
+      <Button type="primary" onClick={showModal}>
         Login
       </Button>
       <Modal
@@ -62,13 +58,13 @@ const Login = () => {
       >
         <div className="text-center">
           {/* Logo */}
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center">
             <Image
               src={logo}
               alt="Bookstore Logo"
-              width={100}
-              height={100}
-              className="rounded-full"
+              width={150}
+              height={150}
+              className="rounded-full object-cover"
             />
           </div>
 
@@ -97,7 +93,7 @@ const Login = () => {
               <Input.Password placeholder="รหัสผ่าน" />
             </Form.Item>
 
-            {/* Submit Button */}
+            {/* login Button */}
             <Form.Item>
               <Button
                 type="primary"
@@ -109,16 +105,6 @@ const Login = () => {
               </Button>
             </Form.Item>
           </Form>
-
-          {/* Login Button */}
-          {/* <Button
-            type="primary"
-            onClick={handleLogin}
-            className="w-full bg-red-500 hover:bg-red-600 h-10 flex items-center justify-center"
-            disabled={loading}
-          >
-            {loading ? <Spin size="small" /> : "เข้าสู่ระบบ"}
-          </Button> */}
 
           {/* Signup Link */}
           <p className="mt-4 text-sm text-gray-700">

@@ -1,20 +1,19 @@
 "use client";
 
-import { DatePicker, Select, Form, Input, Button, Alert, message } from "antd";
+import { DatePicker, Select, Form, Input, Button, message } from "antd";
 import { useState } from "react";
 import { User } from "@/utils/types";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import logo from "/public/media/images/uncle_johns_logo_black.png";
 
 const register = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleSubmit = async (values: User) => {
-    //console.log(values);
     setLoading(true);
-    setSuccess(false);
-    setError(null);
 
     try {
       const response = await fetch("/api/auth/register", {
@@ -23,17 +22,17 @@ const register = () => {
         body: JSON.stringify(values),
       });
 
+      const serverResponse = await response.json();
+
       if (response.ok) {
-        setSuccess(true);
-        message.success("Registration successful!");
+        message.success(serverResponse.message);
+        router.push("/");
       } else {
-        const errorData = await response.json();
-        setError(errorData.error || "Registration failed.");
-        // <Alert message="Registration failed!" type="error" showIcon />;
-        message.error("Registration failed!");
+        message.error(serverResponse.error);
       }
     } catch (error) {
-      setError("An unexpected error occurred. Please try again.");
+      console.error("Registration error:", error);
+      message.error("An error occurred during registration.");
     } finally {
       setLoading(false);
     }
@@ -41,17 +40,16 @@ const register = () => {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      {success && (
-        <Alert message="Registration successful!" type="success" showIcon />
-      )}
-      {error && <Alert message={error} type="error" showIcon />}
-
       <div className="bg-gray-200 p-8 my-8 rounded-lg shadow-lg max-w-lg w-full text-center">
         {/* Logo */}
-        <div className="flex justify-center mb-4">
-          <div className="w-24 h-24 bg-gray-400 rounded-full flex items-center justify-center text-gray-700 text-lg">
-            logo
-          </div>
+        <div className="flex justify-center">
+          <Image
+            src={logo}
+            alt="Bookstore Logo"
+            width={150}
+            height={150}
+            className="rounded-full object-cover"
+          />
         </div>
 
         <h2 className="text-xl font-bold mb-4">ลงทะเบียนเข้าใช้งาน</h2>
