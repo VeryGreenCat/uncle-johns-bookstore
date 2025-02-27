@@ -1,15 +1,13 @@
-// app/api/auth/regis/route.ts
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { prisma } from "@/utils/db";
 
-// register
 export async function POST(req: Request) {
   try {
     const { name, surname, email, password, birthday, gender, phoneNumber } =
       await req.json();
 
-    // Validate required fields
+    // second-time required fields validation
     if (
       !name ||
       !surname ||
@@ -25,7 +23,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Validate email format
+    // second-time email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return NextResponse.json(
@@ -72,16 +70,16 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({ message: "User registered successfully", user });
+    return NextResponse.json({ message: "Registration successful!", user });
   } catch (error) {
     if (error instanceof Error) {
-      console.error(error.message); // Log the error message if it's an instance of Error
+      console.error("Registration error: ", error.message); // Log the error message if it's an instance of Error
     } else {
-      console.error("Unknown error occurred", error); // For non-Error objects
+      console.error("Unknown Registration error: ", error); // For non-Error objects
     }
 
     return NextResponse.json(
-      { error: "An error occurred during registration" },
+      { error: "An error occurred during route registration" },
       { status: 500 }
     );
   }

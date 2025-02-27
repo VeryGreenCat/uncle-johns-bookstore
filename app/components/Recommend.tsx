@@ -1,4 +1,4 @@
-import Book from "./Book"; // Import the Book component
+import ShowBookContainer from "./ShowBookContainer";
 
 const books = [
   {
@@ -33,18 +33,22 @@ const books = [
     type: "E-Book",
     price: 0,
   },
+  {
+    id: 5,
+    image: "/media/images/book1.jpg",
+    title: "หนังสือเรียนรายวิชาพื้นฐาน คณิตศาสตร์ ม.3 เล่ม 2 (PDF)",
+    type: "E-Book",
+    price: 53,
+    oldPrice: 59,
+    discount: 10,
+  },
 ];
 
 const Recommend = () => {
   return (
-    <div className="p-4 bg-gray-100 rounded-lg">
-      <h2 className="text-xl font-bold">Recommended Books</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-        {books.map((book) => (
-          <Book key={book.id} {...book} />
-        ))}
-      </div>
-    </div>
+    <>
+      <ShowBookContainer books={books} headerText={"Recommend"} />
+    </>
   );
 };
 export default Recommend;

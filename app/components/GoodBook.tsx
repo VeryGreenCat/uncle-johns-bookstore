@@ -1,4 +1,4 @@
-import Book from "./Book"; // Import the Book component
+import ShowBookContainer from "./ShowBookContainer";
 
 const books = [
   {
@@ -37,14 +37,9 @@ const books = [
 
 const GoodBook = () => {
   return (
-    <div className="p-4 bg-gray-100 rounded-lg">
-      <h2 className="text-xl font-bold">Good Books</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-        {books.map((book) => (
-          <Book key={book.id} {...book} />
-        ))}
-      </div>
-    </div>
+    <>
+      <ShowBookContainer books={books} headerText={"Good Book"} />
+    </>
   );
 };
 export default GoodBook;
