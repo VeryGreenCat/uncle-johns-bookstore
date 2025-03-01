@@ -1,100 +1,150 @@
-"use client"; // Ensure compatibility with Next.js App Router
-
-import React from "react";
+"use client";
+import { useState } from "react";
 import { Card, Rate } from "antd";
 
 const orders = [
   {
-    date: "16 มีนาคม 2567",
+    id: 1,
+    date: "28 มีนาคม 2568",
     orderNumber: "3014577620",
-    total: 1899.98,
-    books: [
+    status: "In transit",
+    products: [
       {
-        title: "Microsoft Surface Duo",
+        id: 101,
+        name: "Microsoft Surface Duo",
         price: 1399.99,
-        image:
-          "https://storage.naiin.com/system/application/bookstore/resource/product/202110/534926/1000244160_front_XXL.jpg?imgname=HEARTSTOPPER-%E0%B8%AB%E0%B8%A2%E0%B8%B8%E0%B8%94%E0%B8%AB%E0%B8%B1%E0%B8%A7%E0%B9%83%E0%B8%88%E0%B9%84%E0%B8%A7%E0%B9%89%E0%B8%97%E0%B8%B5%E0%B9%88%E0%B8%99%E0%B8%B2%E0%B8%A2-%E0%B9%80%E0%B8%A5%E0%B9%88%E0%B8%A1-1",
-        rating: 4.5,
+        image: "/surface-duo.jpg",
+        rating: 0,
       },
       {
-        title: "The Art of Innovation",
-        price: 499.99,
-        image:
-          "https://ff.lnwfile.com/_webp_max_images/1024/1024/hm/dw/yc.webp",
-        rating: 3.5,
+        id: 102,
+        name: "Surface Pen",
+        price: 99.99,
+        image: "/surface-pen.jpg",
+        rating: 0,
       },
     ],
   },
   {
-    date: "10 ธันวาคม 2567",
+    id: 2,
+    date: "10 มกราคม 2566",
     orderNumber: "3014577619",
-    total: 899.98,
-    books: [
+    status: "Completed",
+    products: [
       {
-        title: "Mafia City Exclusive Bundle",
+        id: 201,
+        name: "Mafia City Exclusive Bundle",
         price: 499.99,
-        image:
-          "https://res.cloudinary.com/bloomsbury-atlas/image/upload/w_360,c_scale,dpr_1.5/jackets/9781408855713.jpg",
+        image: "/mafia-city.jpg",
         rating: 5,
-      },
-      {
-        title: "The Entrepreneur’s Playbook",
-        price: 399.99,
-        image:
-          "https://res.cloudinary.com/bloomsbury-atlas/image/upload/w_360,c_scale,dpr_1.5/jackets/9781408855652.jpg",
-        rating: 2.5,
       },
     ],
   },
 ];
 
 export default function OrderHistory() {
+  const [orderList, setOrderList] = useState(orders);
+
+  const handleRating = (orderId: number, productId: number, value: number) => {
+    setOrderList((prev) =>
+      prev.map((order) =>
+        order.id === orderId
+          ? {
+              ...order,
+              products: order.products.map((product) =>
+                product.id === productId && product.rating === 0
+                  ? { ...product, rating: value ?? 0 }
+                  : product
+              ),
+            }
+          : order
+      )
+    );
+  };
+
+  const handleConfirmDelivery = (id: number) => {
+    setOrderList((prev) =>
+      prev.map((order) =>
+        order.id === id ? { ...order, status: "Completed" } : order
+      )
+    );
+  };
+
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-8">
-      {/* Title */}
-      <h2 className="text-2xl font-bold mb-6">ประวัติการสั่งซื้อ</h2>
+    <div className="max-w-4xl mx-auto p-6 space-y-8">
+      <h1 className="text-2xl font-bold mb-4">ประวัติคำสั่งซื้อ</h1>
+      {orderList.map((order) => {
+        // Calculate total price
+        const totalPrice = order.products.reduce(
+          (sum, product) => sum + product.price,
+          0
+        );
 
-      {orders.map((order, index) => (
-        <Card key={index} className="mb-8 shadow-md border border-gray-200 p-4">
-          {/* Order Info */}
-          <p className="text-gray-500 text-sm mb-2">
-            {order.date} | Order #{order.orderNumber}
-          </p>
-
-          {/* Book List */}
-          <div className="space-y-4">
-            {order.books.map((book, bookIndex) => (
-              <div key={bookIndex} className="flex gap-6 items-center">
-                {/* Book Cover */}
-                <img
-                  src={book.image}
-                  alt={book.title}
-                  className="w-20 h-28 object-cover rounded-md"
-                  onError={(e) => (e.currentTarget.src = "/images/default.jpg")}
-                />
-
-                <div className="flex-1">
-                  <h4 className="text-lg font-semibold">{book.title}</h4>
-                  <p className="text-lg font-bold">{book.price.toFixed(2)} ฿</p>
-
-                  {/* Rating */}
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="text-sm text-gray-600">ให้คะแนน</span>
-                    <Rate allowHalf defaultValue={book.rating} />
+        return (
+          <Card key={order.id} className="mb-8 shadow-md p-6">
+            <p className="text-gray-600">
+              {order.date} | Order #{order.orderNumber}
+            </p>
+            <div className="space-y-4">
+              {order.products.map((product) => (
+                <div
+                  key={product.id}
+                  className="flex items-center gap-4 border-b pb-4"
+                >
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-16 h-16 rounded"
+                  />
+                  <div>
+                    <h3 className="text-lg font-semibold">{product.name}</h3>
+                    <p className="text-gray-700">{product.price.toFixed(2)}฿</p>
+                    {order.status === "Completed" ? (
+                      <Rate
+                        allowHalf
+                        value={product.rating}
+                        disabled={product.rating > 0}
+                        onChange={(value) =>
+                          handleRating(order.id, product.id, value)
+                        }
+                      />
+                    ) : null}
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
 
-          {/* Order Total */}
-          <div className="mt-4 pt-4 border-t">
-            <p className="text-gray-700 font-medium text-lg">
-              รวมทั้งหมด: {order.total.toFixed(2)} ฿
+            {/* Display Total Price */}
+            <p className="text-lg font-semibold text-gray-800 mt-4">
+              รวมทั้งหมด: {totalPrice.toFixed(2)}฿
             </p>
-          </div>
-        </Card>
-      ))}
+
+            {/* Bottom Section with Status (Left) & Button (Right) */}
+            <div className="flex justify-between items-center mt-4">
+              {/* Order Status - Left Bottom */}
+              <p
+                className={`text-sm font-semibold ${
+                  order.status === "In transit"
+                    ? "text-yellow-500"
+                    : "text-green-600"
+                }`}
+              >
+                {order.status}
+              </p>
+
+              {/* Confirm Delivery Button - Right Bottom */}
+              {order.status !== "Completed" && (
+                <button
+                  onClick={() => handleConfirmDelivery(order.id)}
+                  className="bg-[#9D9167] text-white px-4 py-2 text-base rounded-lg hover:bg-[#8d8050] transition"
+                >
+                  ยืนยันได้รับสินค้าแล้ว
+                </button>
+              )}
+            </div>
+          </Card>
+        );
+      })}
     </div>
   );
 }
