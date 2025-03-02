@@ -44,17 +44,18 @@ export async function POST(req: NextRequest) {
       );
     }
     const token = jwt.sign({ userId: user.userId }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
+      expiresIn: "10min",
     });
 
     // Create the response with the token in a secure cookie
     const response = NextResponse.json({ message: "Login successful" });
-    const isProduction = process.env.NODE_ENV === "production";
+
     response.cookies.set("token", token, {
       httpOnly: true,
-      secure: isProduction,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 3600, // 1 hour
+      path: "/", // Available on all routes
+      maxAge: 600, // 10 minutes
     });
 
     return response;

@@ -1,58 +1,30 @@
 import bcrypt from "bcryptjs";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/utils/db";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const { name, surname, email, password, birthday, gender, phoneNumber } =
       await req.json();
 
-    // second-time required fields validation
-    if (
-      !name ||
-      !surname ||
-      !email ||
-      !password ||
-      !birthday ||
-      !gender ||
-      !phoneNumber
-    ) {
+    const hashedPassword = await bcrypt.hash(password, 10); // Hash the password
+
+    const parsedBirthday = new Date(birthday); // Convert birthday to Date object
+    parsedBirthday.setDate(parsedBirthday.getDate() + 1);
+    if (isNaN(parsedBirthday.getTime())) {
       return NextResponse.json(
-        { error: "All fields are required" },
+        { error: "Invalid birthday format" },
         { status: 400 }
       );
     }
 
-    // second-time email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: "Invalid email format" },
-        { status: 400 }
-      );
-    }
-
-    // Check if user already exists
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email }, // Check if user already exists
     });
 
     if (existingUser) {
       return NextResponse.json(
         { error: "User already exists" },
-        { status: 400 }
-      );
-    }
-
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Convert birthday to Date object
-    const parsedBirthday = new Date(birthday);
-    parsedBirthday.setDate(parsedBirthday.getDate() + 1);
-    if (isNaN(parsedBirthday.getTime())) {
-      return NextResponse.json(
-        { error: "Invalid birthday format" },
         { status: 400 }
       );
     }
@@ -69,7 +41,6 @@ export async function POST(req: Request) {
         phoneNumber,
       },
     });
-
     return NextResponse.json({ message: "Registration successful!", user });
   } catch (error) {
     if (error instanceof Error) {
@@ -77,7 +48,6 @@ export async function POST(req: Request) {
     } else {
       console.error("Unknown Registration error: ", error); // For non-Error objects
     }
-
     return NextResponse.json(
       { error: "An error occurred during route registration" },
       { status: 500 }

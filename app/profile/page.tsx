@@ -1,7 +1,13 @@
+"use client";
+
 import { Card, Button } from "antd";
 import { LockOutlined, EditOutlined } from "@ant-design/icons";
 
+import { useSession } from "next-auth/react";
+
 const profile = () => {
+  const { data: session, status } = useSession();
+  console.log(session, status);
   return (
     <div className="flex justify-center items-center min-h-screen min-w-full mx-auto bg-#E8D1A7 p-10">
       <Card
