@@ -56,21 +56,21 @@ const profile = () => {
           <Button
             type="default"
             className="flex-1 h-10 px-4 text-sm"
-            onClick={showEditModal}
+            // onClick={showEditModal}
           >
             แก้ไขข้อมูลบัญชี
           </Button>
           <Button
             type="primary"
             className="flex-1 h-10 px-4 text-sm"
-            onClick={showPasswordModal}
+            // onClick={showPasswordModal}
           >
             เปลี่ยนรหัสผ่าน
           </Button>
         </div>
-      </div>
+      </Card>
 
-      {/* Edit Profile Modal */}
+      {/* Edit Profile Modal
       <Modal
         title="แก้ไขข้อมูลบัญชี"
         open={isEditModalOpen}
@@ -116,9 +116,9 @@ const profile = () => {
             </Button>
           </div>
         </Form>
-      </Modal>
+      </Modal> */}
 
-      {/* Change Password Modal */}
+      {/* Change Password Modal
       <Modal
         title="เปลี่ยนรหัสผ่าน"
         open={isPasswordModalOpen}
@@ -165,9 +165,9 @@ const profile = () => {
             </Button>
           </div>
         </Form>
-      </Modal>
+      </Modal> */}
     </div>
   );
 };
 
-export default Profile;
+export default profile;
