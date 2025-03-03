@@ -13,13 +13,14 @@ const Book = ({ image, title, type, price, oldPrice, discount }: BookProps) => {
   return (
     <div className="border rounded-xl p-3 shadow-md">
       {/* Book Cover */}
-      <div className="relative w-full h-64">
+      <div className="relative w-full h-64 flex justify-center items-center">
         <Image
           src={image}
           alt={title}
-          layout="fill"
-          objectFit="cover"
-          className="rounded-lg"
+          width={0}
+          height={0}
+          sizes="100vw"
+          className="h-full w-auto rounded-lg object-contain"
         />
       </div>
 

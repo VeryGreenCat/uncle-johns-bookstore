@@ -3,7 +3,7 @@ import ShowBookContainer from "./ShowBookContainer";
 const books = [
   {
     id: 1,
-    image: "/media/images/book1.jpg",
+    image: "/media/images/book2.jpg",
     title: "มุมมองนักอ่านพระเจ้า เล่ม 1 (PDF)",
     type: "E-Book",
     price: 0,
