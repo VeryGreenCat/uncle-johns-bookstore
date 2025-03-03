@@ -37,26 +37,53 @@ const handler = NextAuth({
           throw new Error("Invalid credentials");
         }
 
-        return { id: user.userId, email: user.email }; // This object gets stored in the JWT
+        return {
+          id: user.id,
+          name: user.name,
+          surname: user.surname,
+          email: user.email,
+          birthday: user.birthday,
+          gender: user.gender,
+          phoneNumber: user.phoneNumber,
+          address: user.address,
+        }; // This object gets stored in the JWT
       },
     }),
   ],
+
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
+  jwt: {
+    encryption: true, // Enable JWT encryption
+  },
+  secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.name = user.name;
+        token.surname = user.surname;
+        token.email = user.email;
+        token.birthday = user.birthday;
+        token.gender = user.gender;
+        token.phoneNumber = user.phoneNumber;
+        token.address = user.address;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id;
+        session.user.name = token.name;
+        session.user.surname = token.surname;
+        session.user.email = token.email;
+        session.user.birthday = token.birthday;
+        session.user.gender = token.gender;
+        session.user.phoneNumber = token.phoneNumber;
+        session.user.address = token.address;
       }
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET,
 });
 export { handler as GET, handler as POST };

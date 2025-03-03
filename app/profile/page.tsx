@@ -6,8 +6,10 @@ import { LockOutlined, EditOutlined } from "@ant-design/icons";
 import { useSession } from "next-auth/react";
 
 const profile = () => {
-  const { data: session, status } = useSession();
-  console.log(session, status);
+  const { data: session } = useSession();
+  const userData = session?.user;
+  // console.log(session);
+
   return (
     <div className="flex justify-center items-center min-h-screen min-w-full mx-auto bg-#E8D1A7 p-10">
       <Card
@@ -20,23 +22,33 @@ const profile = () => {
         <div className="space-y-3">
           <div className="flex text-base">
             <span className="font-semibold w-40">ชื่อ-นามสกุล</span>
-            <span>กะสิดิด ทองบุน</span>
+            <span>{userData?.name + " " + userData?.surname}</span>
           </div>
           <div className="flex text-base">
             <span className="font-semibold w-40">อีเมล</span>
-            <span>kasidis@gmail.com</span>
+            <span>{userData?.email}</span>
           </div>
           <div className="flex text-base">
             <span className="font-semibold w-40">วันเกิด</span>
-            <span>14/10/2548</span>
+            <span>
+              {userData?.birthday
+                ? new Date(userData.birthday).toLocaleDateString("en-GB")
+                : "N/A"}
+            </span>
           </div>
           <div className="flex text-base">
             <span className="font-semibold w-40">เพศ</span>
-            <span>ชาย</span>
+            <span>
+              {userData?.gender === "m"
+                ? "ชาย"
+                : userData?.gender === "f"
+                ? "หญิง"
+                : "อื่นๆ"}
+            </span>
           </div>
           <div className="flex text-base">
             <span className="font-semibold w-40">เบอร์โทร</span>
-            <span>0999999999</span>
+            <span>{userData?.phoneNumber}</span>
           </div>
         </div>
 

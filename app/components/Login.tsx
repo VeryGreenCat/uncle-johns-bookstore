@@ -5,7 +5,11 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import logo from "/public/media/images/uncle_johns_logo_black.png";
-import { LogoutOutlined, UserOutlined } from "@ant-design/icons";
+import {
+  HistoryOutlined,
+  LogoutOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
 import { useSession, signIn, signOut } from "next-auth/react"; // FIX: Import NextAuth hooks
 import { useSearchParams } from "next/navigation";
 
@@ -57,12 +61,17 @@ const Login = () => {
     {
       key: "profile",
       icon: <UserOutlined />,
-      label: <Link href="/profile">Profile</Link>,
+      label: <Link href="/profile">โปรไฟล์</Link>,
+    },
+    {
+      key: "history",
+      icon: <HistoryOutlined />,
+      label: <Link href="/orderHistory">ประวัติการสั่งซื้อ</Link>,
     },
     {
       key: "logout",
       icon: <LogoutOutlined />,
-      label: "Logout",
+      label: "ออกจากระบบ",
       onClick: handleLogout,
     },
   ];
