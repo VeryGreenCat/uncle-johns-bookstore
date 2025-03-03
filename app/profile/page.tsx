@@ -1,66 +1,55 @@
 "use client";
 
-import { useState } from "react";
-import { Form, Input, Button, Modal, DatePicker, Select } from "antd";
-import dayjs from "dayjs";
+import { Card, Button } from "antd";
+import { LockOutlined, EditOutlined } from "@ant-design/icons";
 
-const { Option } = Select;
+import { useSession } from "next-auth/react";
 
-const Profile = () => {
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const [userData, setUserData] = useState({
-    firstName: "กะสิคดิ",
-    lastName: "ทองบุญ",
-    email: "kasidis@gmail.com",
-    birthDate: "14/10/2548",
-    gender: "ชาย",
-    phone: "0999999999",
-  });
-
-  const showEditModal = () => setIsEditModalOpen(true);
-  const closeEditModal = () => setIsEditModalOpen(false);
-
-  const showPasswordModal = () => setIsPasswordModalOpen(true);
-  const closePasswordModal = () => setIsPasswordModalOpen(false);
-
-  const onFinish = (values: any) => {
-    setUserData({
-      ...values,
-      birthDate: values.birthDate?.format("DD/MM/YYYY"),
-    });
-    setIsEditModalOpen(false);
-  };
-
-  const onChangePassword = (values: any) => {
-    console.log("New Password:", values);
-    setIsPasswordModalOpen(false);
-  };
+const profile = () => {
+  const { data: session } = useSession();
+  const userData = session?.user;
+  // console.log(session);
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="bg-white shadow-xl rounded-xl p-12 w-full max-w-4xl min-h-[400px]">
-        <h2 className="text-2xl font-semibold mb-10 text-left">ข้อมูลสมาชิก</h2>
-
-        <div className="grid grid-cols-2 gap-6 text-lg">
-          <p>
-            <strong>ชื่อ:</strong> {userData.firstName}
-          </p>
-          <p>
-            <strong>นามสกุล:</strong> {userData.lastName}
-          </p>
-          <p>
-            <strong>อีเมล:</strong> {userData.email}
-          </p>
-          <p>
-            <strong>วันเกิด:</strong> {userData.birthDate}
-          </p>
-          <p>
-            <strong>เพศ:</strong> {userData.gender}
-          </p>
-          <p>
-            <strong>เบอร์โทร:</strong> {userData.phone}
-          </p>
+    <div className="flex justify-center items-center min-h-screen min-w-full mx-auto bg-#E8D1A7 p-10">
+      <Card
+        title={<h2 className="text-xl font-bold">ข้อมูลสมาชิก</h2>}
+        className="w-[800px] h-[500px]"
+      >
+        <div className="mb-4 text-lg border-b pb-2 text-gray-700 font-semibold">
+          ข้อมูลบัญชี
+        </div>
+        <div className="space-y-3">
+          <div className="flex text-base">
+            <span className="font-semibold w-40">ชื่อ-นามสกุล</span>
+            <span>{userData?.name + " " + userData?.surname}</span>
+          </div>
+          <div className="flex text-base">
+            <span className="font-semibold w-40">อีเมล</span>
+            <span>{userData?.email}</span>
+          </div>
+          <div className="flex text-base">
+            <span className="font-semibold w-40">วันเกิด</span>
+            <span>
+              {userData?.birthday
+                ? new Date(userData.birthday).toLocaleDateString("en-GB")
+                : "N/A"}
+            </span>
+          </div>
+          <div className="flex text-base">
+            <span className="font-semibold w-40">เพศ</span>
+            <span>
+              {userData?.gender === "m"
+                ? "ชาย"
+                : userData?.gender === "f"
+                ? "หญิง"
+                : "อื่นๆ"}
+            </span>
+          </div>
+          <div className="flex text-base">
+            <span className="font-semibold w-40">เบอร์โทร</span>
+            <span>{userData?.phoneNumber}</span>
+          </div>
         </div>
 
         <div className="mt-10 flex gap-4">

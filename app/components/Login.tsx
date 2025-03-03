@@ -1,40 +1,46 @@
 "use client";
 
-import { Button, Modal, Input, Form, message } from "antd";
+import { Button, Modal, Input, Form, message, Dropdown, MenuProps } from "antd";
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import logo from "/public/media/images/uncle_johns_logo_black.png";
+import {
+  HistoryOutlined,
+  LogoutOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
+import { useSession, signIn, signOut } from "next-auth/react"; // FIX: Import NextAuth hooks
+import { useSearchParams } from "next/navigation";
 
 const Login = () => {
+  const { data: session } = useSession(); // FIX: Use NextAuth session
   const [form] = Form.useForm();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const showModal = () => setOpen(true);
+  const searchParams = useSearchParams();
+  const showLoginModal = searchParams.get("requestLoginModal");
+
+  const showModal = () => setOpen(true || showLoginModal === "true");
   const handleCancel = () => setOpen(false);
 
   const handleLogin = async () => {
+    // FIX: Use NextAuth signIn
     setLoading(true);
-
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: form.getFieldValue("email"),
-          password: form.getFieldValue("password"),
-        }),
+      const response = await signIn("credentials", {
+        redirect: false,
+        email: form.getFieldValue("email"),
+        password: form.getFieldValue("password"),
       });
 
-      const serverResponse = await response.json();
-
-      if (response.ok) {
-        message.success(serverResponse.message);
+      if (response?.error) {
+        message.error("Invalid email or password");
+      } else {
+        message.success("Login successful");
         form.resetFields();
         setOpen(false);
-      } else {
-        message.error(serverResponse.error);
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -44,11 +50,46 @@ const Login = () => {
     }
   };
 
+  const handleLogout = () => {
+    signOut({
+      callbackUrl: "/",
+    });
+    message.success("Logged out successfully");
+  };
+
+  const items: MenuProps["items"] = [
+    {
+      key: "profile",
+      icon: <UserOutlined />,
+      label: <Link href="/profile">โปรไฟล์</Link>,
+    },
+    {
+      key: "history",
+      icon: <HistoryOutlined />,
+      label: <Link href="/orderHistory">ประวัติการสั่งซื้อ</Link>,
+    },
+    {
+      key: "logout",
+      icon: <LogoutOutlined />,
+      label: "ออกจากระบบ",
+      onClick: handleLogout,
+    },
+  ];
+
   return (
     <>
-      <Button type="primary" onClick={showModal}>
-        Login
-      </Button>
+      {session ? ( // FIX: Use session data to check authentication
+        <Dropdown menu={{ items }} trigger={["hover"]}>
+          <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#E8D1A7] transition">
+            <UserOutlined style={{ color: "white", fontSize: "1.3rem" }} />
+          </button>
+        </Dropdown>
+      ) : (
+        <Button type="primary" onClick={showModal}>
+          Login
+        </Button>
+      )}
+
       <Modal
         title="เข้าสู่ระบบ"
         open={open}
@@ -57,7 +98,6 @@ const Login = () => {
         centered
       >
         <div className="text-center">
-          {/* Logo */}
           <div className="flex justify-center">
             <Image
               src={logo}
@@ -69,7 +109,6 @@ const Login = () => {
           </div>
 
           <Form form={form} layout="vertical" onFinish={handleLogin}>
-            {/* Email */}
             <Form.Item
               name="email"
               label="อีเมล"
@@ -84,7 +123,6 @@ const Login = () => {
               <Input placeholder="อีเมล" />
             </Form.Item>
 
-            {/* Password */}
             <Form.Item
               name="password"
               label="รหัสผ่าน"
@@ -93,7 +131,6 @@ const Login = () => {
               <Input.Password placeholder="รหัสผ่าน" />
             </Form.Item>
 
-            {/* login Button */}
             <Form.Item>
               <Button
                 type="primary"
@@ -106,7 +143,6 @@ const Login = () => {
             </Form.Item>
           </Form>
 
-          {/* Signup Link */}
           <p className="mt-4 text-sm text-gray-700">
             สมัครสมาชิกใหม่ด้วยอีเมลล์{" "}
             <Link
