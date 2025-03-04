@@ -1,76 +1,94 @@
 "use client";
 
-import { Card, Button } from "antd";
-import { LockOutlined, EditOutlined } from "@ant-design/icons";
-
+import { useState } from "react";
+import { Form, Input, Button, Modal, DatePicker, Select } from "antd";
+import dayjs from "dayjs";
 import { useSession } from "next-auth/react";
 
-const profile = () => {
+const { Option } = Select;
+
+const Profile = () => {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const { data: session } = useSession();
-  const userData = session?.user;
-  // console.log(session);
+  const user = session?.user;
+  const [userData, setUserData] = useState({
+    name: user?.name,
+    surname: user?.surname,
+    email: user?.email,
+    birthday: user?.birthday,
+    gender: user?.gender,
+    phoneNumber: user?.phoneNumber,
+  });
+
+  const showEditModal = () => setIsEditModalOpen(true);
+  const closeEditModal = () => setIsEditModalOpen(false);
+  const showPasswordModal = () => setIsPasswordModalOpen(true);
+  const closePasswordModal = () => setIsPasswordModalOpen(false);
+
+  const onFinish = (values: any) => {
+    setUserData({
+      ...values,
+      birthDate: values.birthDate?.format("DD/MM/YYYY"),
+    });
+    setIsEditModalOpen(false);
+  };
+
+  const onChangePassword = (values: any) => {
+    console.log("New Password:", values);
+    setIsPasswordModalOpen(false);
+  };
 
   return (
-    <div className="flex justify-center items-center min-h-screen min-w-full mx-auto bg-#E8D1A7 p-10">
-      <Card
-        title={<h2 className="text-xl font-bold">ข้อมูลสมาชิก</h2>}
-        className="w-[800px] h-[500px]"
-      >
-        <div className="mb-4 text-lg border-b pb-2 text-gray-700 font-semibold">
-          ข้อมูลบัญชี
-        </div>
-        <div className="space-y-3">
-          <div className="flex text-base">
-            <span className="font-semibold w-40">ชื่อ-นามสกุล</span>
-            <span>{userData?.name + " " + userData?.surname}</span>
-          </div>
-          <div className="flex text-base">
-            <span className="font-semibold w-40">อีเมล</span>
-            <span>{userData?.email}</span>
-          </div>
-          <div className="flex text-base">
-            <span className="font-semibold w-40">วันเกิด</span>
-            <span>
-              {userData?.birthday
-                ? new Date(userData.birthday).toLocaleDateString("en-GB")
-                : "N/A"}
-            </span>
-          </div>
-          <div className="flex text-base">
-            <span className="font-semibold w-40">เพศ</span>
-            <span>
-              {userData?.gender === "m"
-                ? "ชาย"
-                : userData?.gender === "f"
-                ? "หญิง"
-                : "อื่นๆ"}
-            </span>
-          </div>
-          <div className="flex text-base">
-            <span className="font-semibold w-40">เบอร์โทร</span>
-            <span>{userData?.phoneNumber}</span>
-          </div>
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <div className="bg-white shadow-xl rounded-xl p-12 w-full max-w-4xl min-h-[400px]">
+        <h2 className="text-2xl font-semibold mb-10 text-left">ข้อมูลสมาชิก</h2>
+
+        <div className="grid grid-cols-2 gap-6 text-lg">
+          <p>
+            <strong>ชื่อ: </strong> {userData?.name + " " + userData?.surname}
+          </p>
+          <p>
+            <strong>อีเมล: </strong> {userData.email}
+          </p>
+          <p>
+            <strong>วันเกิด: </strong>
+            {userData?.birthday
+              ? new Date(userData.birthday).toLocaleDateString("en-GB")
+              : "N/A"}
+          </p>
+          <p>
+            <strong>เพศ: </strong>
+            {userData?.gender === "m"
+              ? "ชาย"
+              : userData?.gender === "f"
+              ? "หญิง"
+              : "อื่นๆ"}
+          </p>
+          <p>
+            <strong>เบอร์โทร: </strong> {userData.phoneNumber}
+          </p>
         </div>
 
         <div className="mt-10 flex gap-4">
           <Button
             type="default"
             className="flex-1 h-10 px-4 text-sm"
-            // onClick={showEditModal}
+            onClick={showEditModal}
           >
             แก้ไขข้อมูลบัญชี
           </Button>
           <Button
             type="primary"
             className="flex-1 h-10 px-4 text-sm"
-            // onClick={showPasswordModal}
+            onClick={showPasswordModal}
           >
             เปลี่ยนรหัสผ่าน
           </Button>
         </div>
-      </Card>
+      </div>
 
-      {/* Edit Profile Modal
+      {/* Edit Profile Modal */}
       <Modal
         title="แก้ไขข้อมูลบัญชี"
         open={isEditModalOpen}
@@ -82,7 +100,7 @@ const profile = () => {
           onFinish={onFinish}
           initialValues={{
             ...userData,
-            birthDate: dayjs(userData.birthDate, "DD/MM/YYYY"),
+            birthDate: dayjs(userData.birthday, "DD/MM/YYYY"),
           }}
         >
           <div className="flex gap-2">
@@ -116,9 +134,9 @@ const profile = () => {
             </Button>
           </div>
         </Form>
-      </Modal> */}
+      </Modal>
 
-      {/* Change Password Modal
+      {/* Change Password Modal */}
       <Modal
         title="เปลี่ยนรหัสผ่าน"
         open={isPasswordModalOpen}
@@ -165,9 +183,9 @@ const profile = () => {
             </Button>
           </div>
         </Form>
-      </Modal> */}
+      </Modal>
     </div>
   );
 };
 
-export default profile;
+export default Profile;
