@@ -17,7 +17,7 @@ const AdminHomepage = () => {
               <div className="text-2xl">เพิ่ม / แก้ไขสต๊อกสินค้า</div>
             </Card>
           </Link>
-          <Link href="/adminStockManagement">
+          <Link href="/adminEditCategory">
             <Card className="w-96 h-72  p-6 hover:shadow-lg flex items-center justify-center">
               <div className="text-2xl">เพิ่ม / แก้ไขหมวดหมู่หนังสือ</div>
             </Card>
