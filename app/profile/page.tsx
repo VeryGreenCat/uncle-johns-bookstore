@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Form, Input, Button, Modal, DatePicker, Select, message } from "antd";
 import dayjs from "dayjs";
 import { useSession } from "next-auth/react";
@@ -28,6 +28,21 @@ const Profile = () => {
   const closeEditModal = () => setIsEditModalOpen(false);
   const showPasswordModal = () => setIsPasswordModalOpen(true);
   const closePasswordModal = () => setIsPasswordModalOpen(false);
+
+  // Sync userData to localStorage whenever it changes
+  useEffect(() => {
+    if (userData && !localStorage.getItem("userData")) {
+      localStorage.setItem("userData", JSON.stringify(userData));
+    }
+  }, [userData]); // Only run this effect when userData changes
+
+  // Load data from localStorage on initial render
+  useEffect(() => {
+    const storedUserData = localStorage.getItem("userData");
+    if (storedUserData) {
+      setUserData(JSON.parse(storedUserData));
+    }
+  }, []); // This effect runs only once when the component mounts
 
   const handleEditSubmit = async (values: User) => {
     setLoadingEditModal(true);
