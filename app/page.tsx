@@ -4,6 +4,7 @@ import GoodBook from "./components/GoodBook";
 import NewBook from "./components/NewBook";
 import OnSale from "./components/OnSale";
 import Recommend from "./components/Recommend";
+import Search from "./components/SearchBar";
 
 const page = () => {
   return (
@@ -11,6 +12,12 @@ const page = () => {
       <div className="flex flex-col gap-5 px-10 py-3">
         <Banner />
         <Category />
+        {/* <Search
+          data={[]}
+          onSearch={function (query: string): void {
+            throw new Error("Function not implemented.");
+          }}
+        /> */}
         <OnSale />
         <NewBook />
         <Recommend />
