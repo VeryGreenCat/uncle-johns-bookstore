@@ -2,7 +2,7 @@
 
 import { DatePicker, Select, Form, Input, Button, message } from "antd";
 import { useState } from "react";
-import { User } from "@/utils/types";
+import { User } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import logo from "/public/media/images/uncle_johns_logo_black.png";
@@ -146,10 +146,10 @@ const register = () => {
           {/* Phone Number */}
           <Form.Item
             name="phoneNumber"
-            label="เบอร์โทร"
-            rules={[{ required: true, message: "กรุณากรอกเบอร์โทร" }]}
+            label="เบอร์โทรศัพท์"
+            rules={[{ required: true, message: "กรุณากรอกเบอร์โทรศัพท์" }]}
           >
-            <Input placeholder="เบอร์โทร" />
+            <Input placeholder="0899999999" />
           </Form.Item>
 
           {/* Submit Button */}
