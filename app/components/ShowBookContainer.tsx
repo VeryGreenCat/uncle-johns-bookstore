@@ -1,5 +1,5 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRef } from "react";
 import Book from "./Book";
 import { BookProps } from "@/utils/props";
 
@@ -10,29 +10,67 @@ const ShowBookContainer = ({
   books: BookProps[];
   headerText: string;
 }) => {
-  const router = useRouter();
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const handleShowAll = () => {
-    localStorage.setItem("books", JSON.stringify(books)); // เก็บข้อมูลหนังสือ
-    localStorage.setItem("searchLabel", headerText); // เก็บหัวข้อ
-    router.push("/searchResult"); // เปลี่ยนหน้าไปที่ searchResult
+  const handleNext = () => {
+    if (containerRef.current) {
+      const scrollAmount = containerRef.current.clientWidth; // Scroll 5 books
+      containerRef.current.scrollBy({
+        left: scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  const handlePrev = () => {
+    if (containerRef.current) {
+      const scrollAmount = containerRef.current.clientWidth; // Scroll 5 books
+      containerRef.current.scrollBy({
+        left: -scrollAmount,
+        behavior: "smooth",
+      });
+    }
   };
 
   return (
-    <div className="p-4 bg-gray-100 rounded-lg">
+    <div className="relative p-4 bg-gray-100 rounded-lg">
+      {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold">{headerText}</h2>
-        <button
-          onClick={handleShowAll}
-          className="text-blue-500 cursor-pointer"
-        >
-          Show All
-        </button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mt-4">
-        {books.map((book) => (
-          <Book key={book.id} {...book} />
-        ))}
+
+      {/* Book Slider */}
+      <div className="relative flex items-center mt-4">
+        {/* Left Button */}
+        <button
+          onClick={handlePrev}
+          className="absolute left-0 z-10 bg-gray-300 w-10 h-10 flex items-center justify-center rounded-full shadow-md hover:bg-gray-400 transition"
+        >
+          &#9665;
+        </button>
+
+        {/* Scrollable Book Container */}
+        <div className="w-full overflow-hidden">
+          <div
+            ref={containerRef}
+            className="flex gap-4 flex-nowrap overflow-x-scroll scroll-smooth no-scrollbar"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }} // Hide scrollbar for Firefox & Edge
+          >
+            {books.map((book) => (
+              <div key={book.id} className="flex-none w-1/5 min-w-[20%]">
+                <Book {...book} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Button */}
+        <button
+          onClick={handleNext}
+          className="absolute right-0 z-10 bg-gray-300 w-10 h-10 flex items-center justify-center rounded-full shadow-md hover:bg-gray-400 transition"
+        >
+          &#9655;
+        </button>
       </div>
     </div>
   );
