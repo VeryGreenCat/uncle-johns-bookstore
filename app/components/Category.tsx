@@ -1,11 +1,12 @@
 const Category = () => {
   const categories: string[] = [
-    "Fiction",
-    "Mystery",
-    "Sci-Fi",
-    "Romance",
-    "History",
-    "Biography",
+    "จิตวิทยา",
+    "การ์ตูน",
+    "นิยาย",
+    "การเงินการลงทุน",
+    "ประวัติศาสตร์",
+    "ชีวประวัติ",
+    "คู่มือเรียน-สอบ",
   ];
   return (
     <div className="flex space-x-4 overflow-x-auto p-4">
