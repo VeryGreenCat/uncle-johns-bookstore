@@ -8,7 +8,7 @@ import Recommend from "./components/Recommend";
 const page = () => {
   return (
     <>
-      <div className="flex flex-col gap-5 px-10 py-3">
+      <div className="flex flex-col gap-5 px-10 py-3 bg-[#FFFFF0]">
         <Banner />
         <Category />
         <OnSale />
