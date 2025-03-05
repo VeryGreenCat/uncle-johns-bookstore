@@ -2,6 +2,7 @@
 import { useRef, useEffect, useState } from "react";
 import Book from "./Book";
 import { BookProps } from "@/utils/props";
+import { DoubleLeftOutlined, DoubleRightOutlined } from "@ant-design/icons";
 
 const ShowBookContainer = ({
   books,
@@ -64,7 +65,7 @@ const ShowBookContainer = ({
           onClick={() => handleScroll("prev")}
           className="absolute left-0 z-10 bg-gray-300 w-10 h-10 flex items-center justify-center rounded-full shadow-md hover:bg-gray-400 transition"
         >
-          &#9665;
+          <DoubleLeftOutlined />
         </button>
 
         {/* Scrollable Book Container */}
@@ -87,7 +88,7 @@ const ShowBookContainer = ({
           onClick={() => handleScroll("next")}
           className="absolute right-0 z-10 bg-gray-300 w-10 h-10 flex items-center justify-center rounded-full shadow-md hover:bg-gray-400 transition"
         >
-          &#9655;
+          <DoubleRightOutlined />
         </button>
       </div>
     </div>
