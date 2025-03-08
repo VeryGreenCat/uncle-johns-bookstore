@@ -47,16 +47,27 @@ const Profile = () => {
   const handleEditSubmit = async (values: User) => {
     setLoadingEditModal(true);
     try {
-      const response = await fetch("/api/auth/edit-profile", {
+      const response = await fetch("/api/profile/edit-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          ...values,
+          currentEmail: userData.email,
+        }),
       });
 
       const serverResponse = await response.json();
 
       if (response.ok) {
         message.success(serverResponse.message);
+
+        const updatedData = {
+          ...values,
+          birthday: values.birthday,
+        };
+        setUserData(updatedData);
+
+        localStorage.setItem("userData", JSON.stringify(updatedData));
       } else {
         message.error(serverResponse.error);
       }
@@ -65,23 +76,21 @@ const Profile = () => {
       message.error("An error occurred during edit profile.");
     } finally {
       setLoadingEditModal(false);
+      setIsEditModalOpen(false);
     }
-
-    setUserData({
-      ...values,
-      birthday: values.birthday,
-    });
-    setIsEditModalOpen(false);
   };
 
   const handleChangePasswordSubmit = async (values: User) => {
     setLoadingPasswordModal(true);
 
     try {
-      const response = await fetch("/api/auth/change-password", {
+      const response = await fetch("/api/profile/change-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          email: userData.email,
+          password: values.password, // Ensure password is included
+        }),
       });
 
       const serverResponse = await response.json();
@@ -96,8 +105,8 @@ const Profile = () => {
       message.error("An error occurred during change password.");
     } finally {
       setLoadingPasswordModal(false);
+      setIsPasswordModalOpen(false);
     }
-    setIsPasswordModalOpen(false);
   };
 
   return (
@@ -120,11 +129,7 @@ const Profile = () => {
           </p>
           <p>
             <strong>เพศ: </strong>
-            {userData?.gender === "m"
-              ? "ชาย"
-              : userData?.gender === "f"
-              ? "หญิง"
-              : "อื่นๆ"}
+            {userData?.gender}
           </p>
           <p>
             <strong>เบอร์โทร: </strong> {userData.phoneNumber}
@@ -164,12 +169,7 @@ const Profile = () => {
             birthday: userData?.birthday
               ? dayjs(userData.birthday)
               : dayjs(null),
-            gender:
-              userData.gender === "m"
-                ? "ชาย"
-                : userData?.gender === "f"
-                ? "หญิง"
-                : "อื่นๆ",
+            gender: userData.gender,
           }}
         >
           <div className="flex gap-2">
@@ -258,7 +258,7 @@ const Profile = () => {
           </Form.Item>
           <Form.Item
             label="รหัสผ่านใหม่"
-            name="newPassword"
+            name="password" // fix temporary
             rules={[{ required: true, message: "กรุณากรอกรหัสผ่านใหม่" }]}
           >
             <Input.Password />
@@ -266,12 +266,12 @@ const Profile = () => {
           <Form.Item
             label="ยืนยันรหัสผ่านใหม่"
             name="confirmPassword"
-            dependencies={["newPassword"]}
+            dependencies={["password"]}
             rules={[
               { required: true, message: "กรุณายืนยันรหัสผ่านใหม่" },
               ({ getFieldValue }) => ({
                 validator(_, value) {
-                  if (!value || getFieldValue("newPassword") === value) {
+                  if (!value || getFieldValue("password") === value) {
                     return Promise.resolve();
                   }
                   return Promise.reject(new Error("รหัสผ่านไม่ตรงกัน"));
