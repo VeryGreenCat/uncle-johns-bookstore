@@ -15,7 +15,6 @@ const ShowBookContainer = ({
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const visibleBooks = 5; // จำนวนเล่มที่แสดงต่อหน้า
-  const scrollAmount = containerRef.current?.clientWidth || 0;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -26,6 +25,7 @@ const ShowBookContainer = ({
     if (!containerRef.current || isTransitioning) return;
     setIsTransitioning(true);
 
+    const scrollAmount = containerRef.current.clientWidth;
     const maxScrollLeft =
       containerRef.current.scrollWidth - containerRef.current.clientWidth;
 
@@ -63,7 +63,7 @@ const ShowBookContainer = ({
       <div className="relative flex items-center mt-4">
         {/* Left Button */}
         <button
-          onClick={handlePrev}
+          onClick={() => handleScroll("prev")}
           className="absolute left-0 z-10 bg-[#743014] w-10 h-10 flex items-center justify-center rounded-full shadow-md hover:bg-[#472111] text-white transition"
         >
           <DoubleLeftOutlined />
@@ -86,7 +86,7 @@ const ShowBookContainer = ({
 
         {/* Right Button */}
         <button
-          onClick={handleNext}
+          onClick={() => handleScroll("next")}
           className="absolute right-0 z-10 bg-[#743014] w-10 h-10 flex items-center justify-center rounded-full shadow-md hover:bg-[#472111] text-white transition"
         >
           <DoubleRightOutlined />
