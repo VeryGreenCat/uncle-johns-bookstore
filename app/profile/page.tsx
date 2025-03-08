@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { Form, Input, Button, Modal, DatePicker, Select } from "antd";
+import { useEffect, useState } from "react";
+import { Form, Input, Button, Modal, DatePicker, Select, message } from "antd";
 import dayjs from "dayjs";
 import { useSession } from "next-auth/react";
+import { User } from "@prisma/client";
 
 const { Option } = Select;
 
@@ -21,22 +22,91 @@ const Profile = () => {
     phoneNumber: user?.phoneNumber,
   });
 
+  const [loadingEditModal, setLoadingEditModal] = useState(false);
+  const [loadingPasswordModal, setLoadingPasswordModal] = useState(false);
   const showEditModal = () => setIsEditModalOpen(true);
   const closeEditModal = () => setIsEditModalOpen(false);
   const showPasswordModal = () => setIsPasswordModalOpen(true);
   const closePasswordModal = () => setIsPasswordModalOpen(false);
 
-  const onFinish = (values: any) => {
-    setUserData({
-      ...values,
-      birthDate: values.birthDate?.format("DD/MM/YYYY"),
-    });
-    setIsEditModalOpen(false);
+  // Sync userData to localStorage whenever it changes
+  useEffect(() => {
+    if (userData && !localStorage.getItem("userData")) {
+      localStorage.setItem("userData", JSON.stringify(userData));
+    }
+  }, [userData]); // Only run this effect when userData changes
+
+  // Load data from localStorage on initial render
+  useEffect(() => {
+    const storedUserData = localStorage.getItem("userData");
+    if (storedUserData) {
+      setUserData(JSON.parse(storedUserData));
+    }
+  }, []); // This effect runs only once when the component mounts
+
+  const handleEditSubmit = async (values: User) => {
+    setLoadingEditModal(true);
+    try {
+      const response = await fetch("/api/profile/edit-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...values,
+          currentEmail: userData.email,
+        }),
+      });
+
+      const serverResponse = await response.json();
+
+      if (response.ok) {
+        message.success(serverResponse.message);
+
+        const updatedData = {
+          ...values,
+          birthday: values.birthday,
+        };
+        setUserData(updatedData);
+
+        localStorage.setItem("userData", JSON.stringify(updatedData));
+      } else {
+        message.error(serverResponse.error);
+      }
+    } catch (error) {
+      console.error("Edit profile error:", error);
+      message.error("An error occurred during edit profile.");
+    } finally {
+      setLoadingEditModal(false);
+      setIsEditModalOpen(false);
+    }
   };
 
-  const onChangePassword = (values: any) => {
-    console.log("New Password:", values);
-    setIsPasswordModalOpen(false);
+  const handleChangePasswordSubmit = async (values: User) => {
+    setLoadingPasswordModal(true);
+
+    try {
+      const response = await fetch("/api/profile/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: userData.email,
+          password: values.password, // Ensure password is included
+        }),
+      });
+
+      const serverResponse = await response.json();
+
+      if (response.ok) {
+        message.success(serverResponse.message);
+      } else {
+        message.error(serverResponse.error);
+      }
+    } catch (error) {
+      console.error("Change password error:", error);
+      message.error("An error occurred during change password.");
+    } finally {
+      setLoadingPasswordModal(false);
+      setIsPasswordModalOpen(false);
+    }
   };
 
   return (
@@ -59,11 +129,7 @@ const Profile = () => {
           </p>
           <p>
             <strong>เพศ: </strong>
-            {userData?.gender === "m"
-              ? "ชาย"
-              : userData?.gender === "f"
-              ? "หญิง"
-              : "อื่นๆ"}
+            {userData?.gender}
           </p>
           <p>
             <strong>เบอร์โทร: </strong> {userData.phoneNumber}
@@ -97,39 +163,78 @@ const Profile = () => {
       >
         <Form
           layout="vertical"
-          onFinish={onFinish}
+          onFinish={handleEditSubmit}
           initialValues={{
             ...userData,
-            birthDate: dayjs(userData.birthday, "DD/MM/YYYY"),
+            birthday: userData?.birthday
+              ? dayjs(userData.birthday)
+              : dayjs(null),
+            gender: userData.gender,
           }}
         >
           <div className="flex gap-2">
-            <Form.Item label="ชื่อ" name="firstName" className="w-1/2">
+            <Form.Item
+              label="ชื่อ"
+              name="name"
+              className="w-1/2"
+              rules={[{ required: true, message: "กรุณากรอกชื่อ" }]}
+            >
               <Input />
             </Form.Item>
-            <Form.Item label="นามสกุล" name="lastName" className="w-1/2">
+            <Form.Item
+              label="นามสกุล"
+              name="surname"
+              className="w-1/2"
+              rules={[{ required: true, message: "กรุณากรอกนามสกุล" }]}
+            >
               <Input />
             </Form.Item>
           </div>
-          <Form.Item label="อีเมล" name="email">
+          <Form.Item
+            label="อีเมล"
+            name="email"
+            rules={[
+              {
+                required: true,
+                type: "email",
+                message: "กรุณากรอกอีเมลที่ถูกต้อง",
+              },
+            ]}
+          >
             <Input />
           </Form.Item>
-          <Form.Item label="วันเกิด" name="birthDate">
-            <DatePicker format="DD/MM/YYYY" className="w-full" />
+          <Form.Item
+            label="วันเดือนปีเกิด"
+            name="birthday"
+            rules={[{ required: true, message: "กรุณาเลือกวันเกิด" }]}
+          >
+            <DatePicker
+              placeholder="dd/mm/yyyy"
+              format={"DD/MM/YYYY"}
+              className="w-full"
+            />
           </Form.Item>
-          <Form.Item label="เพศ" name="gender">
+          <Form.Item
+            label="เพศ"
+            name="gender"
+            rules={[{ required: true, message: "กรุณาเลือกเพศ" }]}
+          >
             <Select>
               <Option value="ชาย">ชาย</Option>
               <Option value="หญิง">หญิง</Option>
               <Option value="อื่นๆ">อื่นๆ</Option>
             </Select>
           </Form.Item>
-          <Form.Item label="เบอร์โทร" name="phone">
+          <Form.Item
+            label="เบอร์โทรศัพท์"
+            name="phoneNumber"
+            rules={[{ required: true, message: "กรุณากรอกเบอร์โทรศัพท์" }]}
+          >
             <Input />
           </Form.Item>
           <div className="flex justify-end gap-2">
             <Button onClick={closeEditModal}>ยกเลิก</Button>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" loading={loadingEditModal}>
               บันทึก
             </Button>
           </div>
@@ -143,7 +248,7 @@ const Profile = () => {
         onCancel={closePasswordModal}
         footer={null}
       >
-        <Form layout="vertical" onFinish={onChangePassword}>
+        <Form layout="vertical" onFinish={handleChangePasswordSubmit}>
           <Form.Item
             label="รหัสผ่านเดิม"
             name="currentPassword"
@@ -153,7 +258,7 @@ const Profile = () => {
           </Form.Item>
           <Form.Item
             label="รหัสผ่านใหม่"
-            name="newPassword"
+            name="password" // fix temporary
             rules={[{ required: true, message: "กรุณากรอกรหัสผ่านใหม่" }]}
           >
             <Input.Password />
@@ -161,12 +266,12 @@ const Profile = () => {
           <Form.Item
             label="ยืนยันรหัสผ่านใหม่"
             name="confirmPassword"
-            dependencies={["newPassword"]}
+            dependencies={["password"]}
             rules={[
               { required: true, message: "กรุณายืนยันรหัสผ่านใหม่" },
               ({ getFieldValue }) => ({
                 validator(_, value) {
-                  if (!value || getFieldValue("newPassword") === value) {
+                  if (!value || getFieldValue("password") === value) {
                     return Promise.resolve();
                   }
                   return Promise.reject(new Error("รหัสผ่านไม่ตรงกัน"));
@@ -178,7 +283,11 @@ const Profile = () => {
           </Form.Item>
           <div className="flex justify-end gap-2">
             <Button onClick={closePasswordModal}>ยกเลิก</Button>
-            <Button type="primary" htmlType="submit">
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loadingPasswordModal}
+            >
               บันทึก
             </Button>
           </div>

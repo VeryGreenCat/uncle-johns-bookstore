@@ -52,7 +52,10 @@ const handler = NextAuth({
   ],
 
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt" },
+  session: {
+    strategy: "jwt",
+    maxAge: 60 * 5, // 5 minutes timeout
+  },
   jwt: {
     encryption: true, // Enable JWT encryption
   },
