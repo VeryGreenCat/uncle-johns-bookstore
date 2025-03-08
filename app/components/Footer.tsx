@@ -5,7 +5,7 @@ import logo from "/public/media/images/uncle_johns_logo.png";
 
 const Footer = () => {
   return (
-    <footer className="bg-[#442D1C] text-white py-8 px-6 mt-8">
+    <footer className="bg-[#442D1C] text-white py-8 px-6 mt-0">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Logo & Description */}
         <div>

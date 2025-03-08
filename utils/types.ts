@@ -10,11 +10,16 @@ export interface User {
 }
 
 export interface Book {
-  id: number;
+  BookId: string; // prisma edit from id : number to BookId : string
   image: string;
   title: string;
   type: string;
   price: number;
   oldPrice?: number;
   discount?: number;
+}
+// prisma edit category
+export interface category {
+  idCat: string;
+  name: string;
 }

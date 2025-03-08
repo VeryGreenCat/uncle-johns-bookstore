@@ -11,9 +11,9 @@ interface BookProps {
 
 const Book = ({ image, title, type, price, oldPrice, discount }: BookProps) => {
   return (
-    <div className="border rounded-xl p-3 shadow-md">
+    <div className="border rounded-xl p-3 shadow-md h-[450px] flex flex-col justify-between bg-white">
       {/* Book Cover */}
-      <div className="relative w-full h-64 flex justify-center items-center">
+      <div className="relative w-full h-[250px] flex justify-center items-center">
         <Image
           src={image}
           alt={title}
@@ -25,8 +25,10 @@ const Book = ({ image, title, type, price, oldPrice, discount }: BookProps) => {
       </div>
 
       {/* Book Details */}
-      <h3 className="mt-3 font-semibold">{title}</h3>
-      <p className="text-gray-500 text-sm">{type}</p>
+      <div>
+        <h3 className="mt-3 font-semibold min-h-[40px]">{title}</h3>
+        <p className="text-gray-500 text-sm">{type}</p>
+      </div>
 
       {/* Price Section */}
       <div className="mt-2 flex items-center space-x-2">
