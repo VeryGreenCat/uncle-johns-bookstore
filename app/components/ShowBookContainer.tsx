@@ -1,7 +1,8 @@
 "use client";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import Book from "./Book";
 import { BookProps } from "@/utils/props";
+import { DoubleLeftOutlined, DoubleRightOutlined } from "@ant-design/icons";
 
 const ShowBookContainer = ({
   books,
@@ -11,25 +12,44 @@ const ShowBookContainer = ({
   headerText: string;
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
-  const handleNext = () => {
-    if (containerRef.current) {
-      const scrollAmount = containerRef.current.clientWidth; // Scroll 5 books
-      containerRef.current.scrollBy({
-        left: scrollAmount,
-        behavior: "smooth",
-      });
-    }
-  };
+  const visibleBooks = 5; // จำนวนเล่มที่แสดงต่อหน้า
+  const scrollAmount = containerRef.current?.clientWidth || 0;
 
-  const handlePrev = () => {
-    if (containerRef.current) {
-      const scrollAmount = containerRef.current.clientWidth; // Scroll 5 books
+  useEffect(() => {
+    if (!containerRef.current) return;
+    containerRef.current.scrollLeft = 0; // เริ่มต้นที่ตำแหน่งแรก
+  }, []);
+
+  const handleScroll = (direction: "next" | "prev") => {
+    if (!containerRef.current || isTransitioning) return;
+    setIsTransitioning(true);
+
+    const maxScrollLeft =
+      containerRef.current.scrollWidth - containerRef.current.clientWidth;
+
+    if (direction === "next") {
+      if (containerRef.current.scrollLeft + scrollAmount >= maxScrollLeft) {
+        // เลื่อนไปเริ่มต้นใหม่แบบไร้รอยต่อ
+        containerRef.current.scrollTo({ left: 0, behavior: "instant" });
+      }
+      containerRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    } else {
+      if (containerRef.current.scrollLeft <= 0) {
+        // เลื่อนไปจุดสุดท้ายแบบไร้รอยต่อ
+        containerRef.current.scrollTo({
+          left: maxScrollLeft,
+          behavior: "instant",
+        });
+      }
       containerRef.current.scrollBy({
         left: -scrollAmount,
         behavior: "smooth",
       });
     }
+
+    setTimeout(() => setIsTransitioning(false), 500); // ป้องกันการกดซ้ำระหว่าง transition
   };
 
   return (
@@ -46,7 +66,7 @@ const ShowBookContainer = ({
           onClick={handlePrev}
           className="absolute left-0 z-10 bg-[#743014] w-10 h-10 flex items-center justify-center rounded-full shadow-md hover:bg-[#472111] text-white transition"
         >
-          &#9665;
+          <DoubleLeftOutlined />
         </button>
 
         {/* Scrollable Book Container */}
@@ -69,7 +89,7 @@ const ShowBookContainer = ({
           onClick={handleNext}
           className="absolute right-0 z-10 bg-[#743014] w-10 h-10 flex items-center justify-center rounded-full shadow-md hover:bg-[#472111] text-white transition"
         >
-          &#9655;
+          <DoubleRightOutlined />
         </button>
       </div>
     </div>
