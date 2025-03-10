@@ -1,139 +1,145 @@
 "use client";
-import { useState } from "react";
-import { Button, Select, Modal, Input, message } from "antd";
+import { useEffect, useState } from "react";
+import { Button, Modal, Select, Input, message } from "antd";
 import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
-  LeftOutlined,
+  ArrowLeftOutlined,
 } from "@ant-design/icons";
+import { useRouter } from "next/navigation";
+
+const { Option } = Select;
 
 const AdminEditCategory = () => {
-  const [categories, setCategories] = useState(["สยองขวัญ", "นิยาย", "สารคดี"]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(
-    categories[0]
-  );
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState<"add" | "edit" | "delete" | null>(
-    null
-  );
-  const [newCategory, setNewCategory] = useState("");
+  const router = useRouter();
+
+  const [category, setCategory] = useState<{ categoryId: number; name: string }[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<{ categoryId: number; name: string } | null>(null);
+  const [categoryName, setCategoryName] = useState("");
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [actionType, setActionType] = useState<"add" | "edit" | "delete" | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchCategory();
+  }, []);
+
+  const fetchCategory = async () => {
+    try {
+      const res = await fetch("/api/category/getCategory");
+      const data = await res.json();
+      if (res.ok) {
+        setCategory(data.category);
+      } else {
+        message.error("ไม่สามารถโหลดหมวดหมู่ได้");
+      }
+    } catch (error) {
+      message.error("เกิดข้อผิดพลาดขณะโหลดหมวดหมู่");
+    }
+  };
 
   const showModal = (type: "add" | "edit" | "delete") => {
-    setModalType(type);
-    setIsModalOpen(true);
+    setActionType(type);
+    setIsModalVisible(true);
+    setCategoryName(type === "edit" && selectedCategory ? selectedCategory.name : "");
   };
 
-  const handleOk = () => {
-    if (modalType === "add" && newCategory) {
-      setCategories([...categories, newCategory]);
-      message.success("เพิ่มหมวดหมู่เสร็จสิ้น");
-    } else if (modalType === "edit" && selectedCategory) {
-      setCategories(
-        categories.map((cat) => (cat === selectedCategory ? newCategory : cat))
-      );
-      message.success("แก้ไขหมวดหมู่เสร็จสิ้น");
-    } else if (modalType === "delete" && selectedCategory) {
-      setCategories(categories.filter((cat) => cat !== selectedCategory));
+  const handleOk = async () => {
+  if (!actionType) return;
+  setLoading(true);
+
+  const url =
+    actionType === "add"
+      ? "/api/category/addCategory"
+      : actionType === "edit"
+      ? "/api/category/editCategory"
+      : "/api/category/deleteCategory";
+
+  const method =
+    actionType === "add" ? "POST" : actionType === "edit" ? "PUT" : "DELETE";
+
+  const body =
+    actionType === "edit"
+      ? JSON.stringify({
+          oldName: selectedCategory?.name, 
+          newName: categoryName, 
+        })
+      : JSON.stringify({
+          name: actionType === "delete" ? selectedCategory?.name : categoryName, 
+        });
+
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body,
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      message.success(`${data.message}`);
+      fetchCategory();
       setSelectedCategory(null);
-      message.success("ลบหมวดหมู่เสร็จสิ้น");
+    } else {
+      message.error(`${data.error}`);
     }
-    setIsModalOpen(false);
-    setNewCategory("");
-  };
+  } catch (error) {
+    message.error("เกิดข้อผิดพลาดขณะทำรายการ");
+  } finally {
+    setLoading(false);
+    setIsModalVisible(false);
+  }
+};
+
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-white">
-      {/* ปุ่มย้อนกลับ */}
-      <div className="relative w-full mb-24">
-        <a href="/adminHomepage">
-          <Button
-            type="primary"
-            icon={<LeftOutlined />}
-            className="absolute top-4 left-4 bg-gray-800 text-white px-4 py-2 rounded-lg"
-          >
-            กลับ
-          </Button>
-        </a>
-      </div>
-      <div className="w-full max-w-lg p-6">
-        {/* กล่องปุ่มและ Dropdown */}
-        <div className="flex justify-center items-center gap-6">
-          {/* ปุ่ม (เพิ่ม, แก้ไข, ลบ) */}
-          <div className="flex flex-col items-center space-y-4">
-            <Button
-              type="primary"
-              className="bg-[#69321f] text-lg py-4 px-8 w-40"
-              icon={<PlusOutlined />}
-              onClick={() => showModal("add")}
-            >
-              เพิ่ม
-            </Button>
-            <Button
-              type="default"
-              className="text-lg py-4 px-8 w-40"
-              icon={<EditOutlined />}
-              onClick={() => showModal("edit")}
-            >
-              แก้ไข
-            </Button>
-            <Button
-              type="primary"
-              danger
-              className="text-lg py-4 px-8 w-40"
-              icon={<DeleteOutlined />}
-              onClick={() => showModal("delete")}
-            >
-              ลบ
-            </Button>
-          </div>
+    <div className="flex flex-col items-center space-y-6 mt-10">
+      <Button icon={<ArrowLeftOutlined />} type="default" onClick={() => router.back()} className="self-start">
+        กลับ
+      </Button>
 
-          {/* Dropdown เลือกหมวดหมู่ */}
-          <Select
-            value={selectedCategory}
-            onChange={(value) => setSelectedCategory(value)}
-            className="w-56 h-12 text-lg text-center text-white"
-          >
-            {categories.map((category) => (
-              <Select.Option key={category} value={category}>
-                {category}
-              </Select.Option>
-            ))}
-          </Select>
-        </div>
+      <Select
+        value={selectedCategory?.name || undefined}
+        onChange={(value) => {
+          const selected = category.find((c) => c.name === value);
+          setSelectedCategory(selected || null);
+        }}
+        placeholder="เลือกหมวดหมู่"
+        className="w-60"
+      >
+        {category.map((cat) => (
+          <Option key={cat.categoryId} value={cat.name}>
+            {cat.name}
+          </Option>
+        ))}
+      </Select>
+
+      <div className="flex space-x-4">
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal("add")}>
+          เพิ่ม
+        </Button>
+        <Button icon={<EditOutlined />} onClick={() => showModal("edit")} disabled={!selectedCategory}>
+          แก้ไข
+        </Button>
+        <Button danger icon={<DeleteOutlined />} onClick={() => showModal("delete")} disabled={!selectedCategory}>
+          ลบ
+        </Button>
       </div>
 
-      {/* Modal */}
       <Modal
-        title={
-          modalType === "add"
-            ? "เพิ่มหมวดหมู่"
-            : modalType === "edit"
-            ? "แก้ไขหมวดหมู่"
-            : "ลบหมวดหมู่"
-        }
-        open={isModalOpen}
+        title={`ยืนยัน${actionType === "add" ? "เพิ่ม" : actionType === "edit" ? "แก้ไข" : "ลบ"}หมวดหมู่`}
+        open={isModalVisible}
         onOk={handleOk}
-        onCancel={() => setIsModalOpen(false)}
+        onCancel={() => setIsModalVisible(false)}
+        confirmLoading={loading}
         okText="ยืนยัน"
         cancelText="ยกเลิก"
       >
-        {modalType === "add" && (
-          <Input
-            placeholder="ชื่อหมวดหมู่ใหม่"
-            value={newCategory}
-            onChange={(e) => setNewCategory(e.target.value)}
-          />
-        )}
-        {modalType === "edit" && selectedCategory && (
-          <Input
-            placeholder="แก้ไขชื่อหมวดหมู่"
-            defaultValue={selectedCategory}
-            onChange={(e) => setNewCategory(e.target.value)}
-          />
-        )}
-        {modalType === "delete" && (
-          <p>คุณแน่ใจหรือไม่ว่าต้องการลบหมวดหมู่นี้?</p>
+        {actionType === "delete" ? (
+          <p>คุณแน่ใจหรือไม่ว่าต้องการลบหมวดหมู่ "{selectedCategory?.name}" ?</p>
+        ) : (
+          <Input value={categoryName} onChange={(e) => setCategoryName(e.target.value)} />
         )}
       </Modal>
     </div>

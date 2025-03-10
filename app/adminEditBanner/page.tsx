@@ -1,167 +1,170 @@
 "use client";
 import { Button, Upload, Carousel, message, Modal } from "antd";
 import { UploadOutlined, LeftOutlined } from "@ant-design/icons";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import supabase from "@/utils/supabaseClient";
 
 const AdminEditBanner = () => {
   const [banners, setBanners] = useState<string[]>([]);
+  const [newBanners, setNewBanners] = useState<
+    { file: File; preview: string }[]
+  >([]);
   const carouselRef = useRef<any>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false); // Popup ยืนยันแก้ไข
-  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false); // Popup ยืนยันลบ
+  const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
-  const handleUpload = (file: any) => {
-    const url = URL.createObjectURL(file);
-    setBanners([...banners, url]);
-    return false;
+  useEffect(() => {
+    fetchBanners();
+  }, []);
+
+  const fetchBanners = async () => {
+    try {
+      const { data, error } = await supabase.storage
+        .from("book-images")
+        .list("banners");
+      if (error) throw error;
+
+      const bannerUrls = data.map(
+        (item) =>
+          supabase.storage
+            .from("book-images")
+            .getPublicUrl(`banners/${item.name}`).data.publicUrl
+      );
+
+      setBanners(bannerUrls);
+    } catch (error) {
+      console.error("Error fetching banners:", error);
+    }
+  };
+
+  const handleUpload = (file: File) => {
+    const previewUrl = URL.createObjectURL(file);
+    setNewBanners([...newBanners, { file, preview: previewUrl }]);
+    return false; // ป้องกันไม่ให้ Upload อัปโหลดทันที
   };
 
   const showConfirmModal = () => {
     setIsConfirmModalVisible(true);
   };
 
-  const handleConfirmOk = () => {
-    message.success("ยืนยันการเปลี่ยนแปลงสำเร็จ!");
+  const handleConfirmOk = async () => {
+    try {
+      for (const item of newBanners) {
+        const { data, error } = await supabase.storage
+          .from("book-images")
+          .upload(`banners/${item.file.name}`, item.file);
+        if (error) throw error;
+
+        const urlData = supabase.storage
+          .from("book-images")
+          .getPublicUrl(data.path).data.publicUrl;
+        setBanners((prev) => [...prev, urlData]);
+      }
+      setNewBanners([]);
+      message.success("อัปโหลดแบนเนอร์สำเร็จ!");
+    } catch (error) {
+      console.error("Error uploading banners:", error);
+    }
     setIsConfirmModalVisible(false);
   };
 
-  const handleConfirmCancel = () => {
-    setIsConfirmModalVisible(false);
-  };
+  const handleDeleteOk = async () => {
+    const allBanners = [...banners, ...newBanners.map((item) => item.preview)];
+    const imageUrl = allBanners[currentIndex];
 
-  const showDeleteModal = () => {
-    setIsDeleteModalVisible(true);
-  };
-
-  const handleDeleteOk = () => {
-    setBanners((prev) => prev.filter((_, index) => index !== currentIndex));
-    message.success("ลบแบนเนอร์สำเร็จ");
+    if (newBanners.some((item) => item.preview === imageUrl)) {
+      setNewBanners((prev) => prev.filter((item) => item.preview !== imageUrl));
+    } else {
+      try {
+        const filePath = imageUrl.split("book-images/")[1];
+        const { error } = await supabase.storage
+          .from("book-images")
+          .remove([filePath]);
+        if (error) throw error;
+        setBanners((prev) => prev.filter((url) => url !== imageUrl));
+      } catch (error) {
+        console.error("Error deleting banner:", error);
+      }
+    }
     setIsDeleteModalVisible(false);
   };
 
-  const handleDeleteCancel = () => {
-    setIsDeleteModalVisible(false);
-  };
+  const previewBanners = [
+    ...banners,
+    ...newBanners.map((item) => item.preview),
+  ];
 
   return (
     <div className="min-h-screen flex flex-col items-center p-4">
-      {/* ปุ่มย้อนกลับ */}
       <div className="relative w-full">
         <a href="/adminHomepage">
           <Button
             type="primary"
             icon={<LeftOutlined />}
-            className="absolute top-4 left-4 bg-gray-800 text-white px-4 py-2 rounded-lg"
+            className="absolute top-4 left-4"
           >
             กลับ
           </Button>
         </a>
       </div>
-
-      {/* Banner Editor */}
-      <div className="flex-grow flex flex-col items-center rounded-3xl w-full p-8">
-        <div className="relative w-full h-48 md:h-72">
+      <div className="flex-grow flex flex-col items-center w-full p-8">
+        <div className="relative w-full h-48 md:h-72 rounded-3xl overflow-hidden">
           <Carousel
             autoplay
-            className="rounded-lg overflow-hidden"
             afterChange={(current) => setCurrentIndex(current)}
             ref={carouselRef}
           >
-            {banners.length > 0 ? (
-              banners.map((src, index) => (
-                <div
-                  key={index}
-                  className="flex flex-col items-center justify-center w-full h-48 md:h-72 bg-gray-300 relative"
-                >
-                  <img src={src} alt="Banner" className="h-full object-cover" />
+            {previewBanners.length > 0 ? (
+              previewBanners.map((src, index) => (
+                <div key={index} className="w-full h-48 md:h-72 bg-gray-300">
+                  <img
+                    src={src}
+                    alt="Banner"
+                    className="h-full w-full object-cover"
+                  />
                 </div>
               ))
             ) : (
-              <div className="flex items-center text-center justify-center w-full h-48 md:h-72 bg-gray-300 text-lg font-semibold">
+              <div className="flex items-center justify-center w-full h-48 md:h-72 bg-gray-300">
                 Preview
               </div>
             )}
           </Carousel>
         </div>
-
-        <div className="">
-          <Upload beforeUpload={handleUpload} showUploadList={false}>
-            <Button
-              icon={<UploadOutlined />}
-              className="bg-brown-600 text-white px-6 py-3 rounded-lg mt-4"
-            >
-              เลือกไฟล์รูปภาพ
-            </Button>
-          </Upload>
-          {banners.length > 0 && (
-            <Button
-              onClick={showDeleteModal}
-              className="bg-red-600 text-white px-6 py-2 rounded-lg mt-4 ml-4"
-            >
-              ลบ
-            </Button>
-          )}
-        </div>
-
-        {/* ปุ่มเปิด Popup ยืนยันการแก้ไข */}
+        <Upload beforeUpload={handleUpload} showUploadList={false}>
+          <Button icon={<UploadOutlined />} className="mt-4">
+            เลือกไฟล์รูปภาพ
+          </Button>
+        </Upload>
+        {previewBanners.length > 0 && (
+          <Button
+            onClick={() => setIsDeleteModalVisible(true)}
+            className="bg-red-600 text-white mt-4"
+          >
+            ลบ
+          </Button>
+        )}
         <Button
-          className="bg-brown-700 text-white px-6 py-2 rounded-lg mt-4 mx-4"
+          className="bg-brown-700 text-white mt-4"
           onClick={showConfirmModal}
         >
           ยืนยันการแก้ไข
         </Button>
       </div>
-
-      {/* Popup ยืนยันการแก้ไข */}
       <Modal
-        title="ต้องการยืนยันการเปลี่ยนแปลงหรือไม่?"
+        title="ยืนยันการเปลี่ยนแปลง?"
         open={isConfirmModalVisible}
         onOk={handleConfirmOk}
-        onCancel={handleConfirmCancel}
-        footer={[
-          <Button
-            key="cancel"
-            onClick={handleConfirmCancel}
-            className="bg-gray-500 text-white"
-          >
-            ยกเลิก
-          </Button>,
-          <Button
-            key="ok"
-            type="primary"
-            onClick={handleConfirmOk}
-            className="bg-brown-600"
-          >
-            ยืนยัน
-          </Button>,
-        ]}
+        onCancel={() => setIsConfirmModalVisible(false)}
       >
         <p>โปรดยืนยันว่าคุณต้องการเปลี่ยนแปลงแบนเนอร์</p>
       </Modal>
-
-      {/* Popup ยืนยันการลบ */}
       <Modal
         title="ต้องการลบแบนเนอร์นี้หรือไม่?"
         open={isDeleteModalVisible}
         onOk={handleDeleteOk}
-        onCancel={handleDeleteCancel}
-        footer={[
-          <Button
-            key="cancel"
-            onClick={handleDeleteCancel}
-            className="bg-gray-500 text-white"
-          >
-            ยกเลิก
-          </Button>,
-          <Button
-            key="ok"
-            type="primary"
-            onClick={handleDeleteOk}
-            className="bg-red-600"
-          >
-            ลบ
-          </Button>,
-        ]}
+        onCancel={() => setIsDeleteModalVisible(false)}
       >
         <p>การลบแบนเนอร์จะไม่สามารถกู้คืนได้ คุณแน่ใจหรือไม่?</p>
       </Modal>

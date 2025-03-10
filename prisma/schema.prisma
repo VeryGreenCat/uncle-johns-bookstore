@@ -27,30 +27,29 @@ model Admin {
   adminId  String  @id @default(uuid())
   email    String  @unique
   password String
-  books    Book[]  @relation("updatedByAdmin")
 }
 
 model Category {
   categoryId String  @id @default(uuid())
-  name       String
+  name       String  @unique
   books      Book[]
 }
 
 model Book {
   bookId      String   @id @default(uuid())
-  name        String
+  name        String   @unique
   author      String
   price       Float
+  discount    Int
   quantity    Int
   publisher   String
   rating      Float?
   bookDetails String
+  imageURL    String
   categoryId  String
   category    Category @relation(fields: [categoryId], references: [categoryId])
   wishlist    Wishlist[]
   orderDetails OrderDetail[]
-  updatedBy   Admin?    @relation("updatedByAdmin", fields: [adminId], references: [adminId])
-  adminId     String?
 }
 
 model Wishlist {

@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error updating profile:", error);
+    console.error("Error updating profile.", error);
     return NextResponse.json(
       { error: "An error occurred while updating the profile." },
       { status: 500 }
