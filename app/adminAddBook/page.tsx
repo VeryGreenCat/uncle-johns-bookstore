@@ -1,49 +1,136 @@
 "use client";
 
-import { useState } from "react";
-import { Card, Input, Button, Avatar, Rate, message, Modal } from "antd";
+import { useState, useEffect } from "react";
 import {
-  EditOutlined,
+  Card,
+  Form,
+  Input,
+  Button,
+  Avatar,
+  message,
+  Upload,
+  InputNumber,
+  Select,
+} from "antd";
+import {
   UploadOutlined,
   ArrowLeftOutlined,
+  FileImageOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
+import { Book } from "@prisma/client";
+import supabase from "@/utils/supabaseClient";
 
-const { TextArea } = Input;
-
-const AdminEditDetail = () => {
+const adminAddBook = () => {
   const router = useRouter();
-
-  const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false); // Popup ยืนยันแก้ไข
-  const showConfirmModal = () => {
-    setIsConfirmModalVisible(true);
-  };
-
-  const handleConfirmOk = () => {
-    message.success("ยืนยันการเปลี่ยนแปลงสำเร็จ!");
-    setIsConfirmModalVisible(false);
-  };
-
-  const handleConfirmCancel = () => {
-    setIsConfirmModalVisible(false);
-  };
-  const [book, setBook] = useState({
-    title: "XXXXXXXXXX",
-    author: "XXXXXXXXXX",
-    editor: "XXXXXXXXXX",
-    publisher: "XXXXXXXXXX",
-    category: "XXXXXXXXXX",
-    pages: "XXX",
-    summary: "รายละเอียดเรื่องย่อ...",
-    price: 999.99,
-    discount: "",
-    quantity: 999,
-    rating: 4,
-    image: "https://via.placeholder.com/150",
+  const [form] = Form.useForm();
+  const { TextArea } = Input;
+  const [book, setBook] = useState<Omit<Book, "bookId" | "rating">>({
+    name: "",
+    author: "",
+    publisher: "",
+    bookDetails: "",
+    price: 0,
+    discount: 0,
+    quantity: 0,
+    imageURL:
+      "https://dummyimage.com/150x150/ffffff/000000&text=please+select+img",
+    categoryId: "",
   });
+  const [previewImage, setPreviewImage] = useState<string | null>(
+    book.imageURL || null
+  );
+  const [fileName, setFileName] = useState<string>("");
+  const [file, setFile] = useState<File | null>(null);
+  const [category, setCategory] = useState<
+    { categoryId: number; name: string }[]
+  >([]);
+  const [selectedCategory, setSelectedCategory] = useState<{
+    categoryId: number;
+    name: string;
+  } | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleChange = (field: string, value: string | number) => {
-    setBook({ ...book, [field]: value });
+  const handleUpload = (file: File) => {
+    const previewUrl = URL.createObjectURL(file);
+    setPreviewImage(previewUrl);
+    setFileName(file.name);
+    setFile(file);
+  };
+
+  // Reset form when component mounts
+  useEffect(() => {
+    form.setFieldsValue(book);
+  }, [book, form]);
+
+  useEffect(() => {
+    fetchCategory();
+  }, []);
+
+  const fetchCategory = async () => {
+    try {
+      const res = await fetch("/api/category/getCategory");
+      const data = await res.json();
+      if (res.ok) {
+        setCategory(data.category);
+      } else {
+        message.error("ไม่สามารถโหลดหมวดหมู่ได้");
+      }
+    } catch (error) {
+      message.error("เกิดข้อผิดพลาดขณะโหลดหมวดหมู่");
+    }
+  };
+
+  const handleFinish = async (values: Omit<Book, "bookId" | "rating">) => {
+    setLoading(true);
+
+    try {
+      if (!file) {
+        message.error("กรุณาเลือกรูปภาพ");
+        throw new Error("No file selected for upload.");
+      }
+
+      const { data, error } = await supabase.storage
+        .from("book-images")
+        .upload(`books/${fileName}`, file);
+      if (error) throw error;
+
+      values.imageURL = supabase.storage
+        .from("book-images")
+        .getPublicUrl(data.path).data.publicUrl;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+    }
+
+    try {
+      const response = await fetch("/api/book/addBook", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+
+      const serverResponse = await response.json();
+
+      if (response.ok) {
+        message.success(serverResponse.message);
+        form.resetFields();
+        setPreviewImage(null);
+        setFileName("");
+      } else {
+        await supabase.storage
+          .from("book-images")
+          .remove([`books/${fileName}`]);
+        message.error(serverResponse.error);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        message.error(error.message);
+      } else {
+        message.error("An unknown error occurred.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -55,123 +142,189 @@ const AdminEditDetail = () => {
           </h2>
         }
       >
-        <div className="grid grid-cols-12 gap-6">
-          {/* รูปหนังสือ */}
-          <div className="col-span-4 flex flex-col items-center">
-            <Avatar shape="square" size={150} src={book.image} />
-            <Button icon={<UploadOutlined />} className="mt-4">
-              เลือกไฟล์รูปภาพ
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={book}
+          onFinish={handleFinish}
+        >
+          <div className="grid grid-cols-12 gap-6">
+            {/* Book Image Upload */}
+            <div className="col-span-4 flex flex-col items-center">
+              <Avatar
+                shape="square"
+                size={150}
+                src={
+                  previewImage &&
+                  previewImage !==
+                    "https://dummyimage.com/150x150/ffffff/000000&text=please+select+img"
+                    ? previewImage
+                    : undefined
+                }
+                icon={
+                  previewImage ===
+                    "https://dummyimage.com/150x150/ffffff/000000&text=please+select+img" &&
+                  !file ? (
+                    <FileImageOutlined />
+                  ) : null
+                }
+                className="border border-gray-300 bg-gray-100"
+              />
+              {fileName && (
+                <p className="my-2 text-sm text-gray-500">{fileName}</p>
+              )}
+              {/* Show file name */}
+              <Form.Item>
+                <Upload
+                  maxCount={1}
+                  listType="picture"
+                  showUploadList={false}
+                  accept=".jpg, .jpeg, .png"
+                  beforeUpload={handleUpload}
+                >
+                  <Button icon={<UploadOutlined />}>เลือกไฟล์รูปภาพ</Button>
+                </Upload>
+              </Form.Item>
+            </div>
+
+            {/* Book Details */}
+            <div className="col-span-8 space-y-3">
+              <Form.Item
+                name="bookId"
+                label="รหัสหนังสือ"
+                rules={[
+                  {
+                    required: true,
+                    message: "กรุณากรอกรหัสหนังสือ",
+                  },
+                ]}
+              >
+                <Input placeholder="กรุณากรอกรหัสหนังสือ เช่น bk001" />
+              </Form.Item>
+              <Form.Item
+                name="name"
+                label="ชื่อเรื่อง"
+                rules={[{ required: true, message: "กรุณากรอกชื่อเรื่อง" }]}
+              >
+                <Input placeholder="กรุณากรอกชื่อเรื่อง" />
+              </Form.Item>
+              <Form.Item
+                name="author"
+                label="ชื่อผู้แต่ง"
+                rules={[{ required: true, message: "กรุณากรอกชื่อผู้แต่ง" }]}
+              >
+                <Input placeholder="กรุณากรอกชื่อผู้แต่ง" />
+              </Form.Item>
+              <Form.Item
+                name="publisher"
+                label="สำนักพิมพ์"
+                rules={[{ required: true, message: "กรุณากรอกชื่อสำนักพิมพ์" }]}
+              >
+                <Input placeholder="กรุณากรอกชื่อสำนักพิมพ์" />
+              </Form.Item>
+              <Form.Item
+                name="categoryId"
+                label="หมวดหมู่"
+                rules={[{ required: true, message: "กรุณากรอกหมวดหมู่" }]}
+              >
+                <Select
+                  value={selectedCategory?.categoryId || undefined} // Store categoryId here
+                  onChange={(value) => {
+                    const selected = category.find(
+                      (c) => c.categoryId === value
+                    );
+                    setSelectedCategory(selected || null); // Store the full selected category object
+                  }}
+                  placeholder="เลือกหมวดหมู่"
+                  className="w-60"
+                >
+                  {category.map((cat) => (
+                    <Select.Option key={cat.categoryId} value={cat.categoryId}>
+                      {cat.name}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+              <Form.Item
+                name="bookDetails"
+                label="เรื่องย่อ"
+                rules={[{ required: true, message: "กรุณากรอกเรื่องย่อ" }]}
+              >
+                <TextArea rows={3} placeholder="กรุณากรอกเรื่องย่อ" />
+              </Form.Item>
+              <div className="flex gap-4">
+                <Form.Item
+                  name="price"
+                  label="ราคา"
+                  rules={[
+                    { required: true, message: "กรุณากรอกราคา" },
+                    {
+                      validator: (_, value) =>
+                        value > 0
+                          ? Promise.resolve()
+                          : Promise.reject("ราคาไม่สามารถเป็น 0"),
+                    },
+                  ]}
+                  className="flex-1"
+                >
+                  <InputNumber
+                    min={1} // Ensure the minimum value is 1
+                    className="w-full"
+                    placeholder="กรุณากรอกราคา"
+                    addonAfter="บาท"
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="discount"
+                  label="ลดราคา"
+                  rules={[{ required: true, message: "กรุณากรอกส่วนลด" }]}
+                  className="flex-1"
+                >
+                  <InputNumber
+                    min={0}
+                    className="w-full"
+                    placeholder="กรุณากรอกส่วนลด"
+                    addonAfter="%"
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="quantity"
+                  label="จำนวน"
+                  rules={[
+                    { required: true, message: "กรุณากรอกจำนวนหนังสือ" },
+                    {
+                      validator: (_, value) =>
+                        value > 0
+                          ? Promise.resolve()
+                          : Promise.reject("จำนวนไม่สามารถเป็น 0"),
+                    },
+                  ]}
+                  className="flex-1"
+                >
+                  <InputNumber
+                    min={0}
+                    className="w-full"
+                    placeholder="กรุณากรอกจำนวนหนังสือ"
+                    addonAfter="เล่ม"
+                  />
+                </Form.Item>
+              </div>
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex justify-between mt-6">
+            <Button icon={<ArrowLeftOutlined />} onClick={() => router.back()}>
+              ย้อนกลับ
+            </Button>
+            <Button type="primary" htmlType="submit" loading={loading}>
+              บันทึกข้อมูล
             </Button>
           </div>
-
-          {/* รายละเอียดหนังสือ */}
-          <div className="col-span-8 space-y-3">
-            {[
-              { label: "ชื่อเรื่อง", key: "title" },
-              { label: "ชื่อผู้แต่ง", key: "author" },
-              { label: "บรรณาธิการ", key: "editor" },
-              { label: "สำนักพิมพ์", key: "publisher" },
-              { label: "หมวดหมู่", key: "category" },
-              { label: "จำนวนหน้า", key: "pages", type: "number" },
-            ].map(({ label, key, type }) => (
-              <div key={key} className="flex items-center">
-                <span className="w-28 font-semibold">{label}:</span>
-                <Input
-                  type={type || "text"}
-                  value={book[key as keyof typeof book]}
-                  onChange={(e) => handleChange(key, e.target.value)}
-                  className="flex-1"
-                />
-              </div>
-            ))}
-
-            {/* เรื่องย่อ */}
-            <div className="flex items-start">
-              <span className="w-28 font-semibold mt-1">เรื่องย่อ:</span>
-              <TextArea
-                rows={3}
-                value={book.summary}
-                onChange={(e) => handleChange("summary", e.target.value)}
-                className="flex-1"
-              />
-            </div>
-
-            {/* ราคา */}
-            <div className="flex items-center">
-              <span className="w-28 font-semibold">ราคา:</span>
-              <Input
-                type="number"
-                value={book.price}
-                onChange={(e) =>
-                  handleChange("price", parseFloat(e.target.value))
-                }
-                className="w-24"
-              />
-            </div>
-
-            {/* ลดราคา */}
-            <div className="flex items-center">
-              <span className="w-28 font-semibold">ลดราคา:</span>
-              <Input
-                type="number"
-                value={book.discount}
-                onChange={(e) => handleChange("discount", e.target.value)}
-                className="w-24"
-              />
-            </div>
-
-            {/* จำนวนสินค้า */}
-            <div className="flex items-center">
-              <span className="w-28 font-semibold">จำนวน:</span>
-              <Input
-                type="number"
-                value={book.quantity}
-                onChange={(e) =>
-                  handleChange("quantity", parseInt(e.target.value))
-                }
-                className="w-24"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* ปุ่มกด */}
-        <div className="flex justify-between mt-6">
-          <Button icon={<ArrowLeftOutlined />} onClick={() => router.back()}>
-            ย้อนกลับ
-          </Button>
-          <Modal
-            title="ต้องการยืนยันการเปลี่ยนแปลงหรือไม่?"
-            open={isConfirmModalVisible}
-            onOk={handleConfirmOk}
-            onCancel={handleConfirmCancel}
-            footer={[
-              <Button
-                key="cancel"
-                onClick={handleConfirmCancel}
-                className="bg-gray-500 text-white"
-              >
-                ยกเลิก
-              </Button>,
-              <Button
-                key="ok"
-                type="primary"
-                onClick={handleConfirmOk}
-                className="bg-brown-600"
-              >
-                ยืนยัน
-              </Button>,
-            ]}
-          >
-            <p>โปรดยืนยันว่าคุณต้องการเปลี่ยนแปลงข้อมูล</p>
-          </Modal>
-          <Button type="primary" onClick={showConfirmModal}>
-            บันทึกข้อมูล
-          </Button>
-        </div>
+        </Form>
       </Card>
     </div>
   );
 };
 
-export default AdminEditDetail;
+export default adminAddBook;

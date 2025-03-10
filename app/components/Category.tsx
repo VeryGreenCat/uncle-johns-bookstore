@@ -1,34 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dropdown, MenuProps, Button } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 
 const Category = () => {
-  const categories: string[] = [
-    "หมวดหมู่ทั้งหมด",
-    "จิตวิทยา",
-    "การ์ตูน",
-    "นิยาย",
-    "การเงินการลงทุน",
-    "ประวัติศาสตร์",
-    "ชีวประวัติ",
-    "คู่มือเรียน-สอบ",
-    "หนังสือเด็ก",
-    "นิยายวาย",
-    "พจนานุกรม",
-    "นิตยาสาร",
-    "ศิลปะ",
-  ];
+  const [selectedCategory, setSelectedCategory] = useState("เลือกหมวดหมู่");
+  const [categories, setCategories] = useState<string[]>([]);
+  const [open, setOpen] = useState(false);
 
-  const [selectedCategory, setSelectedCategory] =
-    useState<string>("เลือกหมวดหมู่");
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("/api/category/getCategory");
+        const data = await response.json();
+        if (data.category && Array.isArray(data.category)) {
+          setCategories(data.category.map((cat: any) => cat.name)); // ใช้ข้อมูลจาก API มาแทน
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleMenuClick: MenuProps["onClick"] = (e) => {
     setSelectedCategory(e.key);
+    setOpen(false); 
   };
 
-  // Convert categories to `items` format
+  const handleVisibleChange = (flag: boolean) => {
+    setOpen(flag);
+  };
+
   const items: MenuProps["items"] = categories.map((category) => ({
     key: category,
     label: category,
@@ -38,22 +43,30 @@ const Category = () => {
     <div className="w-[250px] p-4">
       <Dropdown
         menu={{ items, onClick: handleMenuClick }}
-        trigger={["hover"]}
-        placement="bottomLeft" // Always opens downward
+        trigger={["click"]} 
+        placement="bottomLeft"
         getPopupContainer={(triggerNode) =>
           triggerNode.parentElement as HTMLElement
-        } // Prevents repositioning
-        forceRender // Ensures dropdown renders even when hidden
+        }
+        open={open}
+        onOpenChange={handleVisibleChange} 
       >
         <Button
           style={{
             backgroundColor: "#743014",
             color: "white",
             borderColor: "#743014",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "0 12px",
           }}
-          className="w-full h-[45px] text-lg flex justify-between items-center hover:bg-[#5a2710]"
+          className="w-full h-[45px] text-lg flex items-center hover:bg-[#5a2710]"
         >
-          {selectedCategory} <DownOutlined />
+          <span className="flex-1 text-center">{selectedCategory}</span>
+          <span style={{ width: "20px", textAlign: "right" }}>
+            <DownOutlined />
+          </span>
         </Button>
       </Dropdown>
     </div>
