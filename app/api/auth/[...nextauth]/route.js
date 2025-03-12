@@ -46,6 +46,7 @@ const handler = NextAuth({
           gender: user.gender,
           phoneNumber: user.phoneNumber,
           address: user.address,
+          role: user.role, // Include role in returned user object
         }; // This object gets stored in the JWT
       },
     }),
@@ -54,7 +55,7 @@ const handler = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: {
     strategy: "jwt",
-    maxAge: 60 * 5, // 5 minutes timeout
+    maxAge: 60 * 60, // 60 minutes timeout
   },
   jwt: {
     encryption: true, // Enable JWT encryption
@@ -71,6 +72,7 @@ const handler = NextAuth({
         token.gender = user.gender;
         token.phoneNumber = user.phoneNumber;
         token.address = user.address;
+        token.role = user.role; // Store role in JWT
       }
       return token;
     },
@@ -84,9 +86,11 @@ const handler = NextAuth({
         session.user.gender = token.gender;
         session.user.phoneNumber = token.phoneNumber;
         session.user.address = token.address;
+        session.user.role = token.role; // Include role in session
       }
       return session;
     },
   },
 });
+
 export { handler as GET, handler as POST };

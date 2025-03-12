@@ -2,66 +2,104 @@
 
 import { Card, Button, Table, Avatar, message } from "antd";
 import { DeleteOutlined, ShoppingCartOutlined } from "@ant-design/icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 
-const favourite = () => {
-  const [wishlist, setWishlist] = useState([
-    {
-      id: 1,
-      name: "Lorem ipsum dolor sit amet",
-      price: 20.0,
-      stock: "Out of Stock",
-      image: "https://via.placeholder.com/50x75",
-    },
-    {
-      id: 2,
-      name: "Lorem ipsum dolor sit amet",
-      price: 20.0,
-      stock: "In Stock",
-      image: "https://via.placeholder.com/50x75",
-    },
-  ]);
+const Favourite = () => {
+  const { data: session } = useSession();
+  const userEmail = session?.user?.email;
 
-  const handleRemove = (id: number) => {
-    setWishlist(wishlist.filter((item) => item.id !== id));
+  const [wishlist, setWishlist] = useState<any[]>([]);
+  useEffect(() => {
+    const fetchWishlist = async () => {
+      if (userEmail) {
+        try {
+          const response = await fetch(
+            `/api/favourite/getFavourite?email=${userEmail}`
+          );
+          const data = await response.json();
+          console.log(data);
+          setWishlist(data.favourites || []);
+        } catch (error) {
+          message.error("ไม่สามารถโหลดข้อมูลรายการโปรดได้");
+        }
+      }
+    };
+
+    fetchWishlist();
+  }, [userEmail]);
+
+  const handleRemove = async (bookId: string) => {
+    try {
+      const res = await fetch("/api/favourite/toggle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: userEmail, bookId }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setWishlist(wishlist.filter((item) => item.book.bookId !== bookId));
+        message.success("ลบสินค้าจากรายการโปรดเรียบร้อย");
+      } else {
+        message.error(data.error || "ไม่สามารถลบสินค้าจากรายการโปรดได้");
+      }
+    } catch (error) {
+      message.error("ไม่สามารถลบสินค้าจากรายการโปรดได้");
+    }
   };
 
   const handleAddToCart = (record: any) => {
-    if (record.stock === "Out of Stock") {
+    if (record.book.quantity === 0) {
       message.error("สินค้าหมด ไม่สามารถเพิ่มลงตะกร้าได้");
     } else {
       message.success("เพิ่มสินค้าลงตะกร้าเรียบร้อย");
     }
   };
+
   const columns = [
     {
-      title: "Product",
+      title: "สินค้า",
       dataIndex: "name",
       key: "name",
       render: (text: string, record: any) => (
         <div className="flex items-center space-x-4">
-          <Avatar shape="square" size={64} src={record.image} />
-          <span>{text}</span>
+          <Avatar
+            shape="square"
+            size={128}
+            src={record.book.imageURL} // ใช้ URL รูปภาพที่เหมาะสม
+            style={{ width: "128px", height: "auto", objectFit: "contain" }} // ทำให้รูปพอดีกับขนาด
+          />
         </div>
       ),
     },
     {
-      title: "Price",
-      dataIndex: "price",
-      key: "price",
-      render: (price: number) => `${price.toFixed(2)} บาท`,
+      title: "ชื่อหนังสือ",
+      dataIndex: "name",
+      key: "name",
+      render: (text: string, record: any) => <span>{record.book.name}</span>,
     },
     {
-      title: "Stock Status",
+      title: "ราคา",
+      dataIndex: "price",
+      key: "price",
+      render: (price: number, record: any) => {
+        return <span>{record.book.price - (record.book.discount*record.book.price/100) } บาท</span>;
+      },
+    },
+    {
+      title: "สถานะสินค้า",
       dataIndex: "stock",
       key: "stock",
-      render: (stock: string) => (
+      render: (stock: number, record: any) => (
         <span
           className={
-            stock === "Out of Stock" ? "text-red-500 font-semibold" : ""
+            record.book.quantity > 0
+              ? "text-black " // สีดำถ้ามีสินค้า
+              : "text-red-500 font-semibold" // สีแดงถ้าหมด
           }
         >
-          {stock}
+          {record.book.quantity > 0 ? "มีสินค้า" : "สินค้าหมดแล้ว"}
         </span>
       ),
     },
@@ -75,29 +113,33 @@ const favourite = () => {
             icon={<ShoppingCartOutlined />}
             onClick={() => handleAddToCart(record)}
           >
-            Add to Cart
+            เพิ่มลงตะกร้า
           </Button>
           <Button
             danger
             icon={<DeleteOutlined />}
-            onClick={() => handleRemove(record.id)}
-          />
+            onClick={() => handleRemove(record.book.bookId)}
+          >
+            ลบจากรายการโปรด
+          </Button>
         </div>
       ),
     },
   ];
-
+  
   return (
     <div className="p-6 max-w-full mx-auto">
       <Card
         title={
-          <h2 className="text-xl font-semibold text-center">My Wishlist</h2>
+          <h2 className="text-xl font-semibold text-center">
+            รายการโปรดของฉัน
+          </h2>
         }
       >
         <Table
           dataSource={wishlist}
           columns={columns}
-          rowKey="id"
+          rowKey="bookId"
           pagination={false}
         />
       </Card>
@@ -105,4 +147,4 @@ const favourite = () => {
   );
 };
 
-export default favourite;
+export default Favourite;

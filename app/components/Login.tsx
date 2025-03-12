@@ -51,6 +51,7 @@ const Login = () => {
   };
 
   const handleLogout = () => {
+    localStorage.clear();
     signOut({
       callbackUrl: "/",
     });

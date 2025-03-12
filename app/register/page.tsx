@@ -136,9 +136,9 @@ const register = () => {
             <Select
               placeholder="เลือกเพศ"
               options={[
-                { value: "m", label: "ชาย" },
-                { value: "f", label: "หญิง" },
-                { value: "o", label: "อื่นๆ" },
+                { value: "ชาย", label: "ชาย" },
+                { value: "หญิง", label: "หญิง" },
+                { value: "อื่นๆ", label: "อื่นๆ" },
               ]}
             />
           </Form.Item>

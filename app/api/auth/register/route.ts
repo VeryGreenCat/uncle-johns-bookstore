@@ -28,7 +28,16 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+    // Check if birthday is not in the future
+    const currentDate = new Date();
+    const userBirthday = new Date(parsedBirthday);
 
+    if (userBirthday > currentDate) {
+      return NextResponse.json(
+        { error: "Birthday cannot be in the future." },
+        { status: 400 }
+      );
+    }
     // Create new user
     const user = await prisma.user.create({
       data: {
@@ -39,6 +48,7 @@ export async function POST(req: NextRequest) {
         birthday: parsedBirthday,
         gender,
         phoneNumber,
+        role: "user",
       },
     });
     return NextResponse.json({ message: "Registration successful!", user });

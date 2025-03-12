@@ -1,5 +1,6 @@
-import { Card, Button, Input, Select, Form } from "antd";
-import { useState } from "react";
+import { Card, Button, Select } from "antd";
+import { useState, useEffect } from "react";
+import { getUserId } from "@/utils/shareFunc";
 
 const { Option } = Select;
 
@@ -9,65 +10,34 @@ const PaymentDetail = () => {
   const discount = 6.35;
   const itemCount = 4;
 
-  const [addresses, setAddresses] = useState([
-    {
-      id: 1,
-      name: "บ้าน",
-      address: "123 หมู่ 1",
-      subDistrict: "แขวงบางรัก",
-      district: "เขตบางรัก",
-      province: "กรุงเทพฯ",
-      postalCode: "10500",
-    },
-    {
-      id: 2,
-      name: "ที่ทำงาน",
-      address: "456 หมู่ 5",
-      subDistrict: "ตำบลสวนหลวง",
-      district: "อำเภอสวนหลวง",
-      province: "กรุงเทพฯ",
-      postalCode: "10250",
-    },
-  ]);
-  const [selectedAddressId, setSelectedAddressId] = useState(addresses[0].id);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isAddingNew, setIsAddingNew] = useState(false);
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddress, setSelectedAddress] = useState("");
 
-  const [form] = Form.useForm(); // ใช้ Form instance
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      try {
+        const userEmail = "test@example.com"; // เปลี่ยนเป็นค่าจริง
+        const userId = await getUserId(userEmail);
+        
+        const response = await fetch("/api/address/getAddress", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId }),
+        });
 
-  const handleEdit = () => {
-    const currentAddress = addresses.find(
-      (addr) => addr.id === selectedAddressId
-    );
-    if (currentAddress) {
-      form.setFieldsValue(currentAddress); // กรอกค่าที่อยู่ปัจจุบันลงในฟอร์ม
-      setIsEditing(true);
-    }
-  };
-
-  const handleSave = () => {
-    form.validateFields().then((values) => {
-      if (isAddingNew) {
-        setAddresses([...addresses, { ...values, id: addresses.length + 1 }]);
-        setIsAddingNew(false);
-      } else {
-        setAddresses(
-          addresses.map((addr) =>
-            addr.id === selectedAddressId
-              ? { ...values, id: selectedAddressId }
-              : addr
-          )
-        );
+        const data = await response.json();
+        if (data.addresses) {
+          setAddresses(data.addresses.split(";").filter(addr => addr.trim() !== ""));
+          setSelectedAddress(data.addresses.split(";")[0] || "");
+        }
+      } catch (error) {
+        console.error("Error fetching addresses:", error);
       }
-      setIsEditing(false);
-    });
-  };
-
-  const handleAddNew = () => {
-    form.resetFields(); // รีเซ็ตฟอร์มให้เป็นค่าว่าง
-    setIsAddingNew(true);
-    setIsEditing(true);
-  };
+    };
+    fetchAddresses();
+  }, []);
 
   return (
     <div className="flex justify-between space-x-4 mb-4">
@@ -80,94 +50,26 @@ const PaymentDetail = () => {
           <span className="block font-bold mb-2">ที่อยู่</span>
           <Select
             className="mb-2 w-full"
-            value={selectedAddressId}
-            onChange={setSelectedAddressId}
+            value={selectedAddress}
+            onChange={setSelectedAddress}
           >
-            {addresses.map((addr) => (
-              <Option key={addr.id} value={addr.id}>
-                {addr.name}
-              </Option>
-            ))}
+            {addresses.map((addr, index) => {
+              const addressParts = addr.split(" ");
+              const name = addressParts[0];
+              return (
+                <Option key={index} value={addr}>
+                  {name}
+                </Option>
+              );
+            })}
           </Select>
-
-          {isEditing ? (
-            <Form form={form} layout="vertical" className="mt-4">
-              <Form.Item
-                name="name"
-                label="ชื่อที่อยู่"
-                rules={[{ required: true, message: "กรุณากรอกชื่อที่อยู่" }]}
-              >
-                <Input placeholder="ชื่อที่อยู่" />
-              </Form.Item>
-              <Form.Item
-                name="address"
-                label="ที่อยู่"
-                rules={[{ required: true, message: "กรุณากรอกที่อยู่" }]}
-              >
-                <Input placeholder="ที่อยู่" />
-              </Form.Item>
-              <div className="flex space-x-2">
-                <Form.Item
-                  name="subDistrict"
-                  label="แขวง/ตำบล"
-                  className="w-1/2"
-                  rules={[{ required: true, message: "กรุณากรอกแขวง/ตำบล" }]}
-                >
-                  <Input placeholder="แขวง/ตำบล" />
-                </Form.Item>
-                <Form.Item
-                  name="district"
-                  label="เขต/อำเภอ"
-                  className="w-1/2"
-                  rules={[{ required: true, message: "กรุณากรอกเขต/อำเภอ" }]}
-                >
-                  <Input placeholder="เขต/อำเภอ" />
-                </Form.Item>
-              </div>
-              <div className="flex space-x-2">
-                <Form.Item
-                  name="province"
-                  label="จังหวัด"
-                  className="w-1/2"
-                  rules={[{ required: true, message: "กรุณากรอกจังหวัด" }]}
-                >
-                  <Input placeholder="จังหวัด" />
-                </Form.Item>
-                <Form.Item
-                  name="postalCode"
-                  label="รหัสไปรษณีย์"
-                  className="w-1/2"
-                  rules={[{ required: true, message: "กรุณากรอกรหัสไปรษณีย์" }]}
-                >
-                  <Input placeholder="รหัสไปรษณีย์" />
-                </Form.Item>
-              </div>
-              <Button type="primary" onClick={handleSave} className="mr-2">
-                บันทึก
-              </Button>
-              <Button onClick={() => setIsEditing(false)} className="mr-2">
-                ยกเลิก
-              </Button>
-              {!isAddingNew && (
-                <Button onClick={handleAddNew} type="dashed">
-                  เพิ่มที่อยู่ใหม่
-                </Button>
-              )}
-            </Form>
-          ) : (
-            <>
-              <span className="block my-2 p-2">
-                {
-                  addresses.find((addr) => addr.id === selectedAddressId)
-                    ?.address
-                }
-              </span>
-              <Button onClick={handleEdit}>แก้ไขที่อยู่</Button>
-            </>
-          )}
+          <span className="block my-2 p-2">
+            {selectedAddress.split(" ").slice(1).join(" ")}
+          </span>
+          <Button type="primary">เพิ่มที่อยู่</Button>
+          <Button type="danger" className="ml-2">ลบที่อยู่</Button>
         </Card>
       </div>
-
       <div className="w-1/4">
         <Card className="p-4">
           <div className="flex justify-between text-lg mb-2">

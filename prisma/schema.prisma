@@ -21,6 +21,7 @@ model User {
   address     String?
   wishlist    Wishlist[]
   orders      Order[]
+  role        String
 }
 
 model Admin {

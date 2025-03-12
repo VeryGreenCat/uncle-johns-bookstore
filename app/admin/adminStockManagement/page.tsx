@@ -9,25 +9,26 @@ import {
 } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Book } from "@prisma/client";
 
 const { confirm } = Modal;
 
 const AdminStockManagement = () => {
-  const [book, setBook] = useState([]);
+  const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
 
   useEffect(() => {
-    fetchBook();
+    fetchBooks();
   }, []);
 
-  const fetchBook = async () => {
+  const fetchBooks = async () => {
     try {
       const res = await fetch("/api/book/getBook");
       const data = await res.json();
       if (res.ok) {
-        setBook(data.book);
+        setBooks(data.books);
       } else {
         message.error("ไม่สามารถโหลดรายการหนังสือได้");
       }
@@ -38,12 +39,12 @@ const AdminStockManagement = () => {
     }
   };
 
-  const handleDelete = (bookId) => {
+  const handleDelete = (bookId: string) => {
     confirm({
       title: "คุณแน่ใจหรือไม่ว่าต้องการลบหนังสือเล่มนี้?",
       icon: <ExclamationCircleOutlined />,
       content: "เมื่อลบแล้วจะไม่สามารถกู้คืนได้",
-      okText: "ใช่, ลบเลย",
+      okText: "ยืนยัน",
       okType: "danger",
       cancelText: "ยกเลิก",
       onOk: async () => {
@@ -53,10 +54,11 @@ const AdminStockManagement = () => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ bookId }),
           });
+
           const result = await res.json();
           if (res.ok) {
             message.success("ลบหนังสือเรียบร้อย");
-            fetchBook();
+            fetchBooks();
           } else {
             message.error(result.error);
           }
@@ -70,10 +72,10 @@ const AdminStockManagement = () => {
   const columns = [
     {
       title: "ปกหนังสือ",
-      dataIndex: "cover",
-      key: "cover",
-      render: (cover) => (
-        <Image src={cover} alt="Book Cover" width={50} height={70} />
+      dataIndex: "imageURL",
+      key: "imageURL",
+      render: (imageURL: string | undefined) => (
+        <Image src={imageURL} alt="Book imageURL" width={50} height={70} />
       ),
     },
     {
@@ -87,9 +89,14 @@ const AdminStockManagement = () => {
       key: "name",
     },
     {
-      title: "ประเภทหนังสือ",
-      dataIndex: "category",
-      key: "category",
+      title: "ราคา",
+      dataIndex: "price",
+      key: "price",
+    },
+    {
+      title: "ส่วนลด%",
+      dataIndex: "discount",
+      key: "discount",
     },
     {
       title: "จำนวน",
@@ -99,12 +106,12 @@ const AdminStockManagement = () => {
     {
       title: "จัดการ",
       key: "action",
-      render: (text, record) => (
+      render: (text: any, record: any) => (
         <div className="flex gap-2">
           <Button
             type="primary"
             onClick={() =>
-              router.push(`/adminEditDetail?id=${record.bookId}`)
+              router.push(`/admin/adminEditDetail?bookId=${record.bookId}`)
             }
           >
             แก้ไข
@@ -121,14 +128,15 @@ const AdminStockManagement = () => {
     },
   ];
 
-  const filteredBook = book.filter((book) =>
+  const filteredBooks = (books || []).filter((book) =>
     book.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="min-h-screen p-6">
-      <div className="relative w-full">
-        <Link href="/adminHomepage">
+      {/* ปุ่มกลับ */}
+      <div className="relative w-full mb-4">
+        <Link href="/admin/adminHomepage">
           <Button
             type="primary"
             icon={<LeftOutlined />}
@@ -138,7 +146,9 @@ const AdminStockManagement = () => {
           </Button>
         </Link>
       </div>
-      <div className="mt-3">
+
+      {/* ส่วนของ Header */}
+      <div className="mt-3 px-4">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-black text-xl font-bold">Stock Management</h1>
           <div className="flex items-center gap-4">
@@ -147,19 +157,23 @@ const AdminStockManagement = () => {
               className="w-64"
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <Link href="/adminAddBook">
+            <Link href="/admin/adminAddBook">
               <Button type="primary" icon={<PlusOutlined />}>
                 เพิ่มหนังสือใหม่
               </Button>
             </Link>
           </div>
         </div>
+
+        {/* ตารางข้อมูลหนังสือ */}
         <Table
           columns={columns}
-          dataSource={filteredBook}
+          dataSource={filteredBooks}
           loading={loading}
           pagination={false}
           rowKey="bookId"
+          bordered
+          className="mt-3"
         />
       </div>
     </div>

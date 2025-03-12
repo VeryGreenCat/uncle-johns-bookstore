@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { Dropdown, MenuProps, Button } from "antd";
 import { DownOutlined } from "@ant-design/icons";
+import { useRouter } from "next/navigation";
 
 const Category = () => {
+  const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState("เลือกหมวดหมู่");
   const [categories, setCategories] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
@@ -13,10 +15,8 @@ const Category = () => {
     const fetchCategories = async () => {
       try {
         const response = await fetch("/api/category/getCategory");
-        const data = await response.json();
-        if (data.category && Array.isArray(data.category)) {
-          setCategories(data.category.map((cat: any) => cat.name)); // ใช้ข้อมูลจาก API มาแทน
-        }
+        const data: { category?: { name: string }[] } = await response.json();
+        setCategories(data.category?.map((cat) => cat.name) || []);
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
@@ -27,29 +27,29 @@ const Category = () => {
 
   const handleMenuClick: MenuProps["onClick"] = (e) => {
     setSelectedCategory(e.key);
-    setOpen(false); 
-  };
+    setOpen(false);
 
-  const handleVisibleChange = (flag: boolean) => {
-    setOpen(flag);
+    // Navigate with query parameter
+    router.push(`/searchResult?category=${encodeURIComponent(e.key)}`);
   };
-
-  const items: MenuProps["items"] = categories.map((category) => ({
-    key: category,
-    label: category,
-  }));
 
   return (
     <div className="w-[250px] p-4">
       <Dropdown
-        menu={{ items, onClick: handleMenuClick }}
-        trigger={["click"]} 
+        menu={{
+          items: categories.map((category) => ({
+            key: category,
+            label: category,
+          })),
+          onClick: handleMenuClick,
+        }}
+        trigger={["click"]}
         placement="bottomLeft"
         getPopupContainer={(triggerNode) =>
-          triggerNode.parentElement as HTMLElement
+          triggerNode.parentElement || document.body
         }
         open={open}
-        onOpenChange={handleVisibleChange} 
+        onOpenChange={setOpen}
       >
         <Button
           style={{
@@ -64,9 +64,7 @@ const Category = () => {
           className="w-full h-[45px] text-lg flex items-center hover:bg-[#5a2710]"
         >
           <span className="flex-1 text-center">{selectedCategory}</span>
-          <span style={{ width: "20px", textAlign: "right" }}>
-            <DownOutlined />
-          </span>
+          <DownOutlined />
         </Button>
       </Dropdown>
     </div>

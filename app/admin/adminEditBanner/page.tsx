@@ -3,6 +3,7 @@ import { Button, Upload, Carousel, message, Modal } from "antd";
 import { UploadOutlined, LeftOutlined } from "@ant-design/icons";
 import { useState, useRef, useEffect } from "react";
 import supabase from "@/utils/supabaseClient";
+import Link from "next/link";
 
 const AdminEditBanner = () => {
   const [banners, setBanners] = useState<string[]>([]);
@@ -96,78 +97,81 @@ const AdminEditBanner = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col items-center p-4">
-      <div className="relative w-full">
-        <a href="/adminHomepage">
+    <div className="min-h-screen p-6">
+      {/* ปุ่มกลับ */}
+      <div className="relative w-full mb-4">
+        <Link href="/admin/adminHomepage">
           <Button
             type="primary"
             icon={<LeftOutlined />}
-            className="absolute top-4 left-4"
+            className="absolute text-white py-2 rounded-lg my-2"
           >
             กลับ
           </Button>
-        </a>
+        </Link>
       </div>
-      <div className="flex-grow flex flex-col items-center w-full p-8">
-        <div className="relative w-full h-48 md:h-72 rounded-3xl overflow-hidden">
-          <Carousel
-            autoplay
-            afterChange={(current) => setCurrentIndex(current)}
-            ref={carouselRef}
-          >
-            {previewBanners.length > 0 ? (
-              previewBanners.map((src, index) => (
-                <div key={index} className="w-full h-48 md:h-72 bg-gray-300">
-                  <img
-                    src={src}
-                    alt="Banner"
-                    className="h-full w-full object-cover"
-                  />
+      <div className="min-h-screen flex flex-col items-center p-4">
+        <div className="flex-grow flex flex-col items-center w-full p-8">
+          <div className="relative w-full h-48 md:h-72 rounded-3xl overflow-hidden">
+            <Carousel
+              autoplay
+              afterChange={(current) => setCurrentIndex(current)}
+              ref={carouselRef}
+            >
+              {previewBanners.length > 0 ? (
+                previewBanners.map((src, index) => (
+                  <div key={index} className="w-full h-48 md:h-72 bg-gray-300">
+                    <img
+                      src={src}
+                      alt="Banner"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ))
+              ) : (
+                <div className="flex items-center justify-center w-full h-48 md:h-72 bg-gray-300">
+                  Preview
                 </div>
-              ))
-            ) : (
-              <div className="flex items-center justify-center w-full h-48 md:h-72 bg-gray-300">
-                Preview
-              </div>
-            )}
-          </Carousel>
-        </div>
-        <Upload beforeUpload={handleUpload} showUploadList={false}>
-          <Button icon={<UploadOutlined />} className="mt-4">
-            เลือกไฟล์รูปภาพ
-          </Button>
-        </Upload>
-        {previewBanners.length > 0 && (
+              )}
+            </Carousel>
+          </div>
+          <Upload beforeUpload={handleUpload} showUploadList={false}>
+            <Button icon={<UploadOutlined />} className="mt-4">
+              เลือกไฟล์รูปภาพ
+            </Button>
+          </Upload>
+          {previewBanners.length > 0 && (
+            <Button
+              onClick={() => setIsDeleteModalVisible(true)}
+              className="bg-red-600 text-white mt-4"
+            >
+              ลบ
+            </Button>
+          )}
           <Button
-            onClick={() => setIsDeleteModalVisible(true)}
-            className="bg-red-600 text-white mt-4"
+            className="bg-brown-700 text-white mt-4"
+            onClick={showConfirmModal}
           >
-            ลบ
+            ยืนยันการแก้ไข
           </Button>
-        )}
-        <Button
-          className="bg-brown-700 text-white mt-4"
-          onClick={showConfirmModal}
+        </div>
+        <Modal
+          title="ยืนยันการเปลี่ยนแปลง?"
+          open={isConfirmModalVisible}
+          onOk={handleConfirmOk}
+          onCancel={() => setIsConfirmModalVisible(false)}
         >
-          ยืนยันการแก้ไข
-        </Button>
+          <p>โปรดยืนยันว่าคุณต้องการเปลี่ยนแปลงแบนเนอร์</p>
+        </Modal>
+        <Modal
+          title="ต้องการลบแบนเนอร์นี้หรือไม่?"
+          open={isDeleteModalVisible}
+          onOk={handleDeleteOk}
+          onCancel={() => setIsDeleteModalVisible(false)}
+        >
+          <p>การลบแบนเนอร์จะไม่สามารถกู้คืนได้ คุณแน่ใจหรือไม่?</p>
+        </Modal>
       </div>
-      <Modal
-        title="ยืนยันการเปลี่ยนแปลง?"
-        open={isConfirmModalVisible}
-        onOk={handleConfirmOk}
-        onCancel={() => setIsConfirmModalVisible(false)}
-      >
-        <p>โปรดยืนยันว่าคุณต้องการเปลี่ยนแปลงแบนเนอร์</p>
-      </Modal>
-      <Modal
-        title="ต้องการลบแบนเนอร์นี้หรือไม่?"
-        open={isDeleteModalVisible}
-        onOk={handleDeleteOk}
-        onCancel={() => setIsDeleteModalVisible(false)}
-      >
-        <p>การลบแบนเนอร์จะไม่สามารถกู้คืนได้ คุณแน่ใจหรือไม่?</p>
-      </Modal>
     </div>
   );
 };
