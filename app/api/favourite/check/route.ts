@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ตรวจสอบสถานะ favorite ในฐานข้อมูล
-    const favorite = await prisma.wishlist.findUnique({
+    const favourite = await prisma.wishlist.findUnique({
       where: {
         userId_bookId: {
           userId: userId,
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
         },
       },
     });
-    return NextResponse.json({ isFavorite: !!favorite }, { status: 200 });
+    return NextResponse.json({ isFavourite: !!favourite }, { status: 200 });
   } catch (error) {
     if (error instanceof Error) {
       console.error("Check book error: ", error.message); // Log the error message if it's an instance of Error

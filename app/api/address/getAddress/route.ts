@@ -7,37 +7,36 @@ export async function POST(req: NextRequest) {
     const { userEmail } = await req.json();
 
     if (!userEmail) {
-      return NextResponse.json(
-        { message: "userEmail is required", status: "fail" },
-        { status: 400 }
-      );
+      throw new Error("User email is required");
     }
 
     const userId = await getUserId(userEmail);
+
     if (!userId) {
-      return NextResponse.json(
-        { message: "User not found", status: "fail" },
-        { status: 404 }
-      );
+      throw new Error("User not found");
     }
 
+    // Fetch the user's address
     const user = await prisma.user.findUnique({
       where: { userId },
       select: { address: true },
     });
 
-    if (!user || !user.address) {
-      return NextResponse.json(
-        { message: "No address found", status: "fail" },
-        { status: 404 }
-      );
+    if (!user?.address) {
+      throw new Error("No address found for this user");
     }
 
-    return NextResponse.json({ addresses: user.address, status: "success" });
+    const addresses = user.address.split(";").map((address: string) => {
+      const parts = address.split(" ");
+      const addressName = parts[0]; // Assuming the address name is the first part
+      return { full: address, name: addressName };
+    });
+
+    return NextResponse.json({ addresses });
   } catch (error) {
-    console.error("Error fetching address:", error);
+    console.error("Error fetching addresses:", error.message || error);
     return NextResponse.json(
-      { message: "Internal Server Error", status: "error" },
+      { error: error.message || "Internal server error" },
       { status: 500 }
     );
   }

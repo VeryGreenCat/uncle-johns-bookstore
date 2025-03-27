@@ -22,22 +22,9 @@ const BookDetail = () => {
   useEffect(() => {
     if (bookId) {
       fetchBookDetails(bookId);
+      checkFavouriteStatus();
     }
   }, [bookId]);
-
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     if (!userEmail) {
-  //       message.error("User email is not available");
-  //       return;
-  //     }
-  //     const userId = await getUserId(userEmail);
-  //     if (userId && bookId) {
-  //       checkFavouriteStatus(userId, bookId);
-  //     }
-  //   };
-  //   fetchData();
-  // }, [userId, bookId]);
 
   const fetchBookDetails = async (bookId: string) => {
     try {
@@ -58,36 +45,42 @@ const BookDetail = () => {
     }
   };
 
-  // const checkFavouriteStatus = async (userId: string, bookId: string) => {
-  //   try {
-  //     const res = await fetch("/api/favourite/check", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({
-  //         userId: userId,
-  //         bookId: bookId,
-  //       }),
-  //     });
+  const checkFavouriteStatus = async () => {
+    if (!userEmail) {
+      message.error("User email is not available");
+      return;
+    }
+    const userId = await getUserId(userEmail);
 
-  //     if (!res.ok) {
-  //       throw new Error(
-  //         `Check Favourite Error: ${res.status} - ${res.statusText}`
-  //       );
-  //     }
+    try {
+      const res = await fetch("/api/favourite/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: userId,
+          bookId: bookId,
+        }),
+      });
 
-  //     // ตรวจสอบว่าเป็น JSON ก่อน
-  //     const data = await res.json();
+      if (!res.ok) {
+        throw new Error(
+          `Check Favourite Error: ${res.status} - ${res.statusText}`
+        );
+      }
 
-  //     if (data) {
-  //       setIsFavourite(data.isFavourite);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error:", error);
-  //     message.error(
-  //       "API Error: " + ((error as any)?.message || "Unknown error")
-  //     );
-  //   }
-  // };
+      const data = await res.json();
+
+      if (data) {
+        setIsFavourite(data.isFavourite);
+        // console.log("Favourite status:", data.isFavourite);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      message.error(
+        "API Error: " + ((error as any)?.message || "Unknown error")
+      );
+    }
+  };
 
   const addFavourite = async () => {
     if (!userEmail) {
@@ -114,6 +107,34 @@ const BookDetail = () => {
       }
     } catch (error) {
       message.error("เกิดข้อผิดพลาดในการเพิ่มสินค้าเป็นสินค้าโปรด");
+    }
+  };
+
+  const removeFavourite = async () => {
+    if (!userEmail) {
+      message.error("User email is not available");
+      return;
+    }
+    const userId = await getUserId(userEmail);
+
+    try {
+      const res = await fetch("/api/favourite/removeFavourite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: userId,
+          bookId: bookId,
+        }),
+      });
+
+      if (res.ok) {
+        setIsFavourite(false);
+        message.success("ลบสินค้าจากรายการโปรดเรียบร้อย");
+      } else {
+        message.error(res.statusText);
+      }
+    } catch (error) {
+      message.error("เกิดข้อผิดพลาดในการลบสินค้าจากรายการโปรด");
     }
   };
 
@@ -181,17 +202,20 @@ const BookDetail = () => {
                     </Select.Option>
                   ))}
                 </Select>
-                <Button
-                  type="text"
-                  icon={
-                    isFavourite ? (
-                      <HeartFilled className="text-red-500 text-xl" />
-                    ) : (
-                      <HeartOutlined className="text-gray-500 text-xl" />
-                    )
-                  }
-                  onClick={addFavourite}
-                />
+
+                {isFavourite ? (
+                  <Button
+                    type="text"
+                    icon={<HeartFilled className="text-red-500 text-xl" />}
+                    onClick={removeFavourite}
+                  />
+                ) : (
+                  <Button
+                    type="text"
+                    icon={<HeartOutlined className="text-gray-500 text-xl" />}
+                    onClick={addFavourite}
+                  />
+                )}
               </div>
             </div>
           </div>
