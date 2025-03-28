@@ -4,12 +4,13 @@ import { Card, Button, Table, Avatar, message } from "antd";
 import { DeleteOutlined, ShoppingCartOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { getUserId } from "@/utils/shareFunc";
 
 const Favourite = () => {
   const { data: session } = useSession();
   const userEmail = session?.user?.email;
-
   const [wishlist, setWishlist] = useState<any[]>([]);
+
   useEffect(() => {
     const fetchWishlist = async () => {
       if (userEmail) {
@@ -30,12 +31,19 @@ const Favourite = () => {
   }, [userEmail]);
 
   const handleRemove = async (bookId: string) => {
+    if (!userEmail) {
+      message.error("User email is not available");
+      return;
+    }
+    const userId = await getUserId(userEmail);
+
     try {
-      const res = await fetch("/api/favourite/toggle", {
+      const res = await fetch("/api/favourite/removeFavourite", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: userEmail, bookId }),
+        body: JSON.stringify({ userId: userId, bookId: bookId }),
       });
+
       const data = await res.json();
 
       if (res.ok) {
@@ -84,7 +92,13 @@ const Favourite = () => {
       dataIndex: "price",
       key: "price",
       render: (price: number, record: any) => {
-        return <span>{record.book.price - (record.book.discount*record.book.price/100) } บาท</span>;
+        return (
+          <span>
+            {record.book.price -
+              (record.book.discount * record.book.price) / 100}{" "}
+            บาท
+          </span>
+        );
       },
     },
     {
@@ -126,7 +140,7 @@ const Favourite = () => {
       ),
     },
   ];
-  
+
   return (
     <div className="p-6 max-w-full mx-auto">
       <Card
