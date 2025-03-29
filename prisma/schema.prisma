@@ -24,12 +24,6 @@ model User {
   role        String
 }
 
-model Admin {
-  adminId  String  @id @default(uuid())
-  email    String  @unique
-  password String
-}
-
 model Category {
   categoryId String  @id @default(uuid())
   name       String  @unique
@@ -66,6 +60,7 @@ model Order {
   orderDate    DateTime
   price        Float
   userId       String
+  active       Boolean
   user         User          @relation(fields: [userId], references: [userId])
   orderDetails OrderDetail[]
 }

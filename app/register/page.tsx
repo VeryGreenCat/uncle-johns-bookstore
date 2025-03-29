@@ -147,7 +147,13 @@ const register = () => {
           <Form.Item
             name="phoneNumber"
             label="เบอร์โทรศัพท์"
-            rules={[{ required: true, message: "กรุณากรอกเบอร์โทรศัพท์" }]}
+            rules={[
+              { required: true, message: "กรุณากรอกเบอร์โทรศัพท์" },
+              {
+                pattern: /^\d{10}$/,
+                message: "กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (10 หลัก)",
+              },
+            ]}
           >
             <Input placeholder="0899999999" />
           </Form.Item>

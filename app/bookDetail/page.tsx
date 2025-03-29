@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { Card, Button, Rate, Select, message } from "antd";
+import { Card, Button, Rate, Select, message, Spin } from "antd";
 import { HeartOutlined, HeartFilled } from "@ant-design/icons";
 import { useSession } from "next-auth/react";
 import { Book } from "@/utils/types";
@@ -138,9 +138,76 @@ const BookDetail = () => {
     }
   };
 
-  if (!book) return <p className="text-center mt-10">กำลังโหลดข้อมูล...</p>;
+  // เพิ่มลงตะกร้า
+  const addToCart = async () => {
+    if (!userEmail) {
+      message.error("User email is not available");
+      return;
+    }
+    const userId = await getUserId(userEmail);
 
-  const discountedPrice = book.price - (book.price * book.discount) / 100;
+    try {
+      // Step 1: Get orderId using the userId
+      const orderIdRes = await fetch("/api/cart/getOrderId", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+
+      if (!orderIdRes.ok) {
+        throw new Error("Failed to get orderId");
+      }
+
+      const orderIdData = await orderIdRes.json();
+      const orderId = orderIdData.orderId;
+
+      if (!orderId) {
+        throw new Error("Order creation failed");
+      }
+      const discountedPrice = book
+  ? Math.ceil(book.price - (book.price * book.discount) / 100)
+  : 0;
+
+      const addOrderDetailRes = await fetch("/api/cart/addOrderDetail", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          orderId,
+          bookId: bookId,
+          quantity: quantity,
+          price: discountedPrice,
+        }),
+      });
+
+      const addOrderDetailData = await addOrderDetailRes.json();
+
+      if (addOrderDetailRes.ok) {
+        message.success("เพิ่มลงตะกร้าเรียบร้อยแล้ว");
+      } else {
+        message.error(
+          addOrderDetailData.error || "เกิดข้อผิดพลาดในการเพิ่มลงตะกร้า"
+        );
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      message.error("เกิดข้อผิดพลาดในการเพิ่มลงตะกร้า");
+    }
+  };
+
+  if (!book) {
+    return (
+      <Spin spinning={!book} tip="กำลังโหลดข้อมูล...">
+        <div className="max-w-5xl mx-auto p-6">
+          <Card className="p-4 shadow-md">{/* Existing content */}</Card>
+        </div>
+      </Spin>
+    );
+  }
+
+  const discountedPrice = Math.ceil(
+    book.price - (book.price * book.discount) / 100
+  );
 
   return (
     <div className="max-w-5xl mx-auto p-6">
@@ -206,7 +273,12 @@ const BookDetail = () => {
                 {isFavourite ? (
                   <Button
                     type="text"
-                    icon={<HeartFilled className="text-red-500 text-xl" />}
+                    icon={
+                      <HeartFilled
+                        style={{ color: "red" }}
+                        className=" text-xl"
+                      />
+                    }
                     onClick={removeFavourite}
                   />
                 ) : (
@@ -226,7 +298,7 @@ const BookDetail = () => {
           <p className="text-gray-700 mt-2">{book.bookDetails}</p>
         </div>
 
-        <Button type="primary" className="mt-6 w-full">
+        <Button type="primary" className="mt-6 w-full" onClick={addToCart}>
           เพิ่มลงตะกร้า
         </Button>
       </Card>

@@ -3,7 +3,7 @@ import { Book } from "@/utils/types";
 import { FileImageOutlined } from "@ant-design/icons";
 
 const BookCard = ({ name, price, discount, imageURL, category }: Book) => {
-  const discountPrice = price - (price * discount) / 100;
+  const discountPrice = Math.ceil(price - (price * discount) / 100);
 
   return (
     <div className="border rounded-xl p-3 shadow-md h-[450px] flex flex-col justify-between bg-white">

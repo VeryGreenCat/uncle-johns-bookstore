@@ -15,12 +15,14 @@ export async function GET(req: NextRequest) {
         book: true,
       },
     });
+
     if (!favourites || favourites.length === 0) {
       return NextResponse.json(
         { error: "No favourites found for this user" },
         { status: 404 }
       );
     }
+
     favourites.forEach((item) => {
       if (!item.book) {
         console.error("Missing book data:", item);

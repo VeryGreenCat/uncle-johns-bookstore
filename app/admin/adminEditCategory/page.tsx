@@ -104,7 +104,7 @@ const AdminEditCategory = () => {
   };
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-6 bg-[#FFFFF0]">
       {/* ปุ่มกลับ */}
       <div className="relative w-full mb-4">
         <Link href="/admin/adminHomepage">

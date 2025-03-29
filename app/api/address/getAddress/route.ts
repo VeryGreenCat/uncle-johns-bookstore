@@ -1,42 +1,35 @@
-import { prisma } from "@/utils/db";
 import { NextRequest, NextResponse } from "next/server";
-import { getUserId } from "@/utils/shareFunc";
+import { prisma } from "@/utils/db";
 
 export async function POST(req: NextRequest) {
   try {
-    const { userEmail } = await req.json();
+    const { email } = await req.json();
 
-    if (!userEmail) {
-      throw new Error("User email is required");
+    if (!email) {
+      return NextResponse.json(
+        { message: "User email is required" },
+        { status: 400 }
+      );
     }
 
-    const userId = await getUserId(userEmail);
-
-    if (!userId) {
-      throw new Error("User not found");
-    }
-
-    // Fetch the user's address
     const user = await prisma.user.findUnique({
-      where: { userId },
+      where: { email: email },
       select: { address: true },
     });
 
-    if (!user?.address) {
-      throw new Error("No address found for this user");
+    if (!user) {
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
-    const addresses = user.address.split(";").map((address: string) => {
-      const parts = address.split(" ");
-      const addressName = parts[0]; // Assuming the address name is the first part
-      return { full: address, name: addressName };
-    });
+    if (!user.address) {
+      return NextResponse.json({ address: "" }, { status: 200 });
+    }
 
-    return NextResponse.json({ addresses });
+    return NextResponse.json({ address: user.address }, { status: 200 });
   } catch (error) {
-    console.error("Error fetching addresses:", error.message || error);
+    console.error("Error fetching address:", error);
     return NextResponse.json(
-      { error: error.message || "Internal server error" },
+      { message: "Internal server error fetching address" },
       { status: 500 }
     );
   }
