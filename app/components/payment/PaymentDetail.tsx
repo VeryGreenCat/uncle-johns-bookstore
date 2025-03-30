@@ -1,14 +1,21 @@
 import { Card, Button, Select, Input, Form, message, Col, Row } from "antd";
 import { useState, useEffect } from "react";
+import Image from "next/image";
+
+import QR from "/public/media/images/QrCodePayment.jpg";
 
 const { Option } = Select;
 
 const PaymentDetail = ({
   userId,
   userEmail,
+  orderId,
+  setConfirmOrder,
 }: {
   userId: string;
   userEmail: string;
+  orderId: string;
+  setConfirmOrder: (func: () => void) => void;
 }) => {
   const [addresses, setAddresses] = useState<string[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<string>("");
@@ -45,18 +52,23 @@ const PaymentDetail = ({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId }),
         });
-        const orderDetails = await orderDetailRes.json();
+        const orderDetailsRes = await orderDetailRes.json();
 
-        if (Array.isArray(orderDetails)) {
-          const totalQuantity = orderDetails.reduce(
+        // เช็คว่ามี items และเป็น array
+        if (orderDetailsRes?.items && Array.isArray(orderDetailsRes.items)) {
+          const totalQuantity = orderDetailsRes.items.reduce(
             (acc: number, item: { quantity: number }) => acc + item.quantity,
             0
           );
-          const totalPrice = orderDetails.reduce(
-            (acc: number, item: { price: number }) => acc + item.price,
+          const totalPrice = orderDetailsRes.items.reduce(
+            (acc: number, item: { price: number; quantity: number }) =>
+              acc + item.price * item.quantity,
             0
           );
+
           setCartSummary({ quantity: totalQuantity, price: totalPrice });
+        } else {
+          console.error("Invalid order details response:", orderDetailsRes);
         }
       } catch (error) {
         console.error("Error fetching cart details:", error);
@@ -67,6 +79,34 @@ const PaymentDetail = ({
       fetchData();
     }
   }, [userId, userEmail]);
+
+  useEffect(() => {
+    setConfirmOrder(() => confirmOrder);
+  }, []);
+
+  const confirmOrder = async () => {
+    try {
+      const response = await fetch("/api/cart/confirmOrder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: orderId }),
+      });
+
+      if (!response.ok) {
+        message.error("Error confirming order");
+        return;
+      }
+
+      const data = await response.json();
+      if (data.message === "Order confirmed successfully") {
+        message.success("Order confirmed successfully!");
+      } else {
+        message.error("Error confirming order:", data.message);
+      }
+    } catch (error) {
+      console.error("Error in confirmOrder:", error);
+    }
+  };
 
   const handleAddAddress = async (values: any) => {
     // Combine the address fields into one string.
@@ -108,12 +148,20 @@ const PaymentDetail = ({
     }
   };
 
+  const PaymentQR = ({ amount }: { amount: number }) => {
+    const phoneNumber = "0909942794"; // Your PromptPay number
+    const qrUrl = `https://promptpay.io/${phoneNumber}/${amount}`;
+
+    return <Image src={qrUrl} alt="PromptPay QR" width={128} height={128} />;
+  };
+
   return (
     <div className="flex justify-between space-x-4 mb-4">
       <div className="w-3/5">
-        <Card className="p-4 text-center">
+        <Card className="p-4 text-center flex flex-col items-center">
           <span className="text-xl font-semibold">QR Code</span>
           {/* QR Code placeholder; insert your QR code image here */}
+          <PaymentQR amount={cartSummary.price} />
         </Card>
         <div className="my-4"></div>
         <Card className="p-4 mt-4">
@@ -261,7 +309,7 @@ const PaymentDetail = ({
           </div>
           <div className="flex justify-between text-lg mt-4 font-bold">
             <span>รวมทั้งหมด</span>
-            <span>{(cartSummary.price - 6.35).toFixed(2)} บาท</span>
+            <span>{cartSummary.price.toFixed(2)} บาท</span>
           </div>
         </Card>
       </div>

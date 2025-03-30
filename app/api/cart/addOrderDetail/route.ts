@@ -30,7 +30,10 @@ export async function POST(req: NextRequest) {
     });
 
     if (existingOrderDetail) {
-      return NextResponse.json({ message: "สินค้านี้ถูกเพิ่มเข้าตะกร้าไปแล้ว" }, { status: 400 });
+      return NextResponse.json(
+        { message: "สินค้านี้ถูกเพิ่มเข้าตะกร้าไปแล้ว" },
+        { status: 400 }
+      );
     }
 
     // เพิ่ม OrderDetail ใหม่
@@ -40,6 +43,7 @@ export async function POST(req: NextRequest) {
         bookId,
         quantity: parseInt(quantity),
         price: parseFloat(price),
+        rating: 0,
       },
     });
 

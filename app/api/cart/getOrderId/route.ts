@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
           orderDate: new Date(),
           price: 0,
           active: true,
+          receiveConfirmed: false,
         },
         select: { orderId: true },
       });

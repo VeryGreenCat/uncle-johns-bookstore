@@ -2,7 +2,15 @@ import { useState, useEffect } from "react";
 import { Button, Modal, Spin } from "antd";
 import { MinusOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 
-const OrderDetail = ({ userId }: { userId: string }) => {
+const OrderDetail = ({
+  userId,
+  orderId,
+  setUpdateOrderDetails, // Receive setter
+}: {
+  userId: string;
+  orderId: string;
+  setUpdateOrderDetails: (func: () => void) => void;
+}) => {
   const [orderDetails, setOrderDetails] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -30,6 +38,29 @@ const OrderDetail = ({ userId }: { userId: string }) => {
     }
   }, [userId]);
 
+  const updateOrderDetails = async () => {
+    try {
+      console.log("Updating order details for orderId:", orderId);
+      setOrderDetails((prevOrderDetails) => {
+        console.log("Latest order details:", prevOrderDetails);
+
+        fetch("/api/cart/updateOrderDetail", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ orderId, updatedItems: prevOrderDetails }),
+        });
+
+        return prevOrderDetails; // Keep the state unchanged in setOrderDetails
+      });
+    } catch (error) {
+      console.error("Error updating order details:", error);
+    }
+  };
+
+  useEffect(() => {
+    setUpdateOrderDetails(() => updateOrderDetails);
+  }, [orderDetails]); // Depend on orderDetails so the latest data is used
+
   const updateQuantity = (bookId: string, delta: number) => {
     setOrderDetails((prevDetails) =>
       prevDetails.map((item) =>
@@ -46,7 +77,9 @@ const OrderDetail = ({ userId }: { userId: string }) => {
       content: "สินค้าจะถูกลบออกจากคำสั่งซื้อ",
       onOk: () => {
         setOrderDetails((prevDetails) =>
-          prevDetails.filter((item) => item.bookId !== bookId)
+          prevDetails.map((item) =>
+            item.bookId === bookId ? { ...item, quantity: 0 } : item
+          )
         );
       },
     });
@@ -76,37 +109,39 @@ const OrderDetail = ({ userId }: { userId: string }) => {
           <Spin />
         </div>
       ) : (
-        orderDetails.map((item) => (
-          <div
-            key={item.bookId}
-            className="flex justify-between items-center border-b py-4"
-          >
-            <span className="text-lg flex-1">{item.name}</span>
-            <div className="flex items-center">
+        orderDetails
+          .filter((item) => item.quantity !== 0)
+          .map((item) => (
+            <div
+              key={item.bookId}
+              className="flex justify-between items-center border-b py-4"
+            >
+              <span className="text-lg flex-1">{item.name}</span>
+              <div className="flex items-center">
+                <Button
+                  icon={<MinusOutlined />}
+                  onClick={() => updateQuantity(item.bookId, -1)}
+                />
+                <span className="mx-2 w-6 text-center">{item.quantity}</span>
+                <Button
+                  icon={<PlusOutlined />}
+                  onClick={() => updateQuantity(item.bookId, 1)}
+                />
+              </div>
+              <span className="text-lg w-16 text-right mr-4">
+                ${item.price * item.quantity}
+              </span>
               <Button
-                icon={<MinusOutlined />}
-                onClick={() => updateQuantity(item.bookId, -1)}
-              />
-              <span className="mx-2 w-6 text-center">{item.quantity}</span>
-              <Button
-                icon={<PlusOutlined />}
-                onClick={() => updateQuantity(item.bookId, 1)}
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => removeItem(item.bookId)}
               />
             </div>
-            <span className="text-lg w-16 text-right mr-4">
-              ${item.price * item.quantity}
-            </span>
-            <Button
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() => removeItem(item.bookId)}
-            />
-          </div>
-        ))
+          ))
       )}
       <div className="flex justify-between py-4 font-bold text-xl">
         <span>ยอดรวมทั้งหมด ({totalItems} รายการ):</span>
-        <span>${totalPrice}</span>
+        <span>{totalPrice} บาท</span>
       </div>
     </div>
   );

@@ -11,7 +11,13 @@ const Navbar = () => {
         href={"/"}
         className="flex items-center gap-2 text-lg font-bold text-white"
       >
-        <Image src={logo} alt="Bookstore Logo" width={60} height={60} />
+        <Image
+          src={logo}
+          alt="Bookstore Logo"
+          width={60}
+          height={60}
+          priority
+        />
         <span>Uncle John's Bookstore</span>
       </Link>
 

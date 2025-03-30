@@ -6,7 +6,7 @@ import OrderDetail from "../components/payment/OrderDetail";
 import PaymentDetail from "../components/payment/PaymentDetail";
 import { CheckCircleOutlined } from "@ant-design/icons";
 
-import { getUserId } from "@/utils/shareFunc";
+import { getUserId, getOrderId } from "@/utils/shareFunc";
 import { useSession } from "next-auth/react";
 
 const Payment = () => {
@@ -14,6 +14,11 @@ const Payment = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [updateOrderDetails, setUpdateOrderDetails] = useState<
+    (() => void) | null
+  >(null);
+  const [confirmOrder, setConfirmOrder] = useState<(() => void) | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -24,17 +29,15 @@ const Payment = () => {
       }
 
       const userId = await getUserId(userEmail);
-      if (userId) {
-        console.log("User ID:", userId);
-      }
 
       setUserEmail(userEmail);
       setUserId(userId);
+      setOrderId(await getOrderId(userId));
     };
     if (session?.user?.email) {
       fetchUserData();
     }
-  }, [userEmail, userId, session?.user?.email]);
+  }, [session?.user?.email]);
 
   return (
     <div className="p-6 bg-[#FFFFF0] min-h-screen">
@@ -46,9 +49,20 @@ const Payment = () => {
       </Steps>
       <div className="bg-white p-6 mt-4 rounded-lg shadow-lg">
         <div className="max-h-1/2">
-          {currentStep === 0 && userId && <OrderDetail userId={userId} />}
-          {currentStep === 1 && userId && userEmail && (
-            <PaymentDetail userId={userId} userEmail={userEmail} />
+          {currentStep === 0 && userId && orderId && (
+            <OrderDetail
+              userId={userId}
+              orderId={orderId}
+              setUpdateOrderDetails={setUpdateOrderDetails}
+            />
+          )}
+          {currentStep === 1 && userId && userEmail && orderId && (
+            <PaymentDetail
+              userId={userId}
+              userEmail={userEmail}
+              orderId={orderId}
+              setConfirmOrder={setConfirmOrder}
+            />
           )}
           {currentStep === 2 && (
             <div className="flex flex-col items-center justify-center space-y-4">
@@ -56,12 +70,20 @@ const Payment = () => {
               <h2 className="text-xl font-bold text-gray-700">
                 ชำระเงินเสร็จสิ้น
               </h2>
-              <Button
-                type="primary"
-                onClick={() => (window.location.href = "/")}
-              >
-                กลับสู่หน้าหลัก
-              </Button>
+              <div className="flex space-x-4">
+                <Button
+                  type="primary"
+                  onClick={() => (window.location.href = "/")}
+                >
+                  กลับสู่หน้าหลัก
+                </Button>
+                <Button
+                  type="default"
+                  onClick={() => (window.location.href = "/orderHistory")}
+                >
+                  ประวัติการสั่งซื้อ
+                </Button>
+              </div>
             </div>
           )}
         </div>
@@ -77,7 +99,12 @@ const Payment = () => {
             {currentStep < 1 && (
               <Button
                 type="primary"
-                onClick={() => setCurrentStep(currentStep + 1)}
+                onClick={() => {
+                  if (updateOrderDetails) {
+                    updateOrderDetails(); // Call function only if it exists
+                    setCurrentStep(currentStep + 1);
+                  }
+                }}
               >
                 ดำเนินการต่อ
               </Button>
@@ -85,7 +112,12 @@ const Payment = () => {
             {currentStep === 1 && (
               <Button
                 type="primary"
-                onClick={() => setCurrentStep(currentStep + 1)}
+                onClick={() => {
+                  if (confirmOrder) {
+                    confirmOrder(); // Call function only if it exists
+                    setCurrentStep(currentStep + 1);
+                  }
+                }}
               >
                 ชำระเงิน
               </Button>

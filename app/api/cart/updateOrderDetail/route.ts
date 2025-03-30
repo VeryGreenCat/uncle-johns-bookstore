@@ -1,7 +1,7 @@
 import { prisma } from "@/utils/db";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function updateOrderDetail(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const { orderId, updatedItems } = await request.json();
 
@@ -13,16 +13,26 @@ export async function updateOrderDetail(request: NextRequest) {
     }
 
     await prisma.$transaction(async (tx) => {
-      const updatePromises = updatedItems.map((item) =>
-        tx.orderDetail.update({
-          where: { orderId_bookId: { orderId, bookId: item.bookId } },
-          data: { quantity: item.quantity, price: item.price },
-        })
-      );
+      const updatePromises = updatedItems.map((item) => {
+        if (item.quantity === 0) {
+          return tx.orderDetail.delete({
+            where: { orderId_bookId: { orderId, bookId: item.bookId } },
+          });
+        } else {
+          return tx.orderDetail.update({
+            where: { orderId_bookId: { orderId, bookId: item.bookId } },
+            data: {
+              quantity: item.quantity,
+              price: item.price * item.quantity,
+            },
+          });
+        }
+      });
 
       await Promise.all(updatePromises);
     });
 
+    console.log("Order details updated successfully");
     return NextResponse.json(
       { message: "Order details updated successfully" },
       { status: 200 }

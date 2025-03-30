@@ -9,7 +9,13 @@ const Footer = () => {
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Logo & Description */}
         <div>
-          <Image src={logo} alt="Bookstore Logo" width={100} height={100} />
+          <Image
+            src={logo}
+            alt="Bookstore Logo"
+            width={100}
+            height={100}
+            priority
+          />
           <p className="text-gray-400 text-sm">
             Discover a world of books at our bookstore. We offer a wide range of
             genres, bestsellers, and rare finds.

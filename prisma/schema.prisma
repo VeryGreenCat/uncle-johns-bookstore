@@ -56,13 +56,14 @@ model Wishlist {
 }
 
 model Order {
-  orderId      String        @id @default(uuid())
-  orderDate    DateTime
-  price        Float
-  userId       String
-  active       Boolean
-  user         User          @relation(fields: [userId], references: [userId])
-  orderDetails OrderDetail[]
+  orderId           String        @id @default(uuid())
+  orderDate         DateTime
+  price             Float
+  userId            String
+  active            Boolean
+  receiveConfirmed  Boolean
+  user              User          @relation(fields: [userId], references: [userId])
+  orderDetails      OrderDetail[]
 }
 
 model OrderDetail {
@@ -70,6 +71,7 @@ model OrderDetail {
   bookId    String
   quantity  Int
   price     Float
+  rating    Float
   order     Order   @relation(fields: [orderId], references: [orderId])
   book      Book    @relation(fields: [bookId], references: [bookId])
   @@id([orderId,bookId]) // composite key

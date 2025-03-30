@@ -165,8 +165,8 @@ const BookDetail = () => {
         throw new Error("Order creation failed");
       }
       const discountedPrice = book
-  ? Math.ceil(book.price - (book.price * book.discount) / 100)
-  : 0;
+        ? Math.ceil(book.price - (book.price * book.discount) / 100)
+        : 0;
 
       const addOrderDetailRes = await fetch("/api/cart/addOrderDetail", {
         method: "POST",
@@ -232,11 +232,16 @@ const BookDetail = () => {
             </div>
 
             <div>
-              <Rate
-                allowHalf
-                disabled
-                defaultValue={book.rating ?? undefined}
-              />
+              <div className="flex items-center space-x-2">
+                <Rate
+                  allowHalf
+                  disabled
+                  defaultValue={book.rating ?? undefined}
+                />
+                {book.rating > 0 && (
+                  <span className="text-gray-700">{book.rating}</span>
+                )}
+              </div>
               {/* Price Section */}
               <div className="mt-2 flex items-center space-x-2">
                 {book.discount && discountedPrice ? (
@@ -245,10 +250,10 @@ const BookDetail = () => {
                       -{book.discount}%
                     </span>
                     <span className="text-red-500 font-bold">
-                      ฿ {discountedPrice}
+                      {discountedPrice} บาท
                     </span>
                     <span className="text-gray-400 line-through">
-                      ฿ {book.price}
+                      {book.price} บาท
                     </span>
                   </>
                 ) : (
