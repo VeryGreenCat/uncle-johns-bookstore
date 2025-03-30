@@ -38,6 +38,8 @@ const Login = () => {
       if (response?.error) {
         message.error("Invalid email or password");
       } else {
+        // refresh page
+        window.location.reload();
         message.success("Login successful");
         form.resetFields();
         setOpen(false);
