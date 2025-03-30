@@ -53,7 +53,7 @@ const Login = () => {
   const handleLogout = () => {
     localStorage.clear();
     signOut({
-      callbackUrl: "/",
+      callbackUrl: "https://uncle-johns-bookstore.onrender.com/",
     });
     message.success("Logged out successfully");
   };
