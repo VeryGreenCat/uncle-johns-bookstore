@@ -34,21 +34,21 @@ const Footer = () => {
               </Link>
             </li>
             <li>
-              <Link href="/shop">
+              <Link href="/">
                 <span className="text-gray-400 hover:text-white cursor-pointer">
                   Shop
                 </span>
               </Link>
             </li>
             <li>
-              <Link href="/about">
+              <Link href="/">
                 <span className="text-gray-400 hover:text-white cursor-pointer">
                   About Us
                 </span>
               </Link>
             </li>
             <li>
-              <Link href="/contact">
+              <Link href="/">
                 <span className="text-gray-400 hover:text-white cursor-pointer">
                   Contact
                 </span>
