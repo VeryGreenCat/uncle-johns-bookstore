@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     });
 
     // 3. คำนวณราคาทั้งหมด
-    const items = orderDetails.map((detail) => ({
+    const items = orderDetails.map((detail: any) => ({
       bookId: detail.bookId,
       name: detail.book.name,
       quantity: detail.quantity,

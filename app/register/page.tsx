@@ -2,7 +2,7 @@
 
 import { DatePicker, Select, Form, Input, Button, message } from "antd";
 import { useState } from "react";
-import { User } from "@prisma/client";
+import { User } from "@/utils/types";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import logo from "/public/media/images/uncle_johns_logo_black.png";

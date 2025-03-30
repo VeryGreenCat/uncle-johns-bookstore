@@ -238,7 +238,7 @@ const BookDetail = () => {
                   disabled
                   defaultValue={book.rating ?? undefined}
                 />
-                {book.rating > 0 && (
+                {(book.rating ?? 0) > 0 && (
                   <span className="text-gray-700">{book.rating}</span>
                 )}
               </div>

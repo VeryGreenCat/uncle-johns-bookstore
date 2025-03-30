@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       const updatePromises = updatedItems.map((item) => {
         if (item.quantity === 0) {
           return tx.orderDetail.delete({

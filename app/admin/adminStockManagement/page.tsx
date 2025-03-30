@@ -9,7 +9,7 @@ import {
 } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Book } from "@prisma/client";
+import { Book } from "@/utils/types";
 
 const { confirm } = Modal;
 

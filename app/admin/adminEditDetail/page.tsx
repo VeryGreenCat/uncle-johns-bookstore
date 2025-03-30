@@ -18,7 +18,7 @@ import {
   FileImageOutlined,
 } from "@ant-design/icons";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Book } from "@prisma/client";
+import { Book } from "@/utils/types";
 import supabase from "@/utils/supabaseClient";
 
 const AdminEditDetail = () => {

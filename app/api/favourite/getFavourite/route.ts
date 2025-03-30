@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    favourites.forEach((item) => {
+    favourites.forEach((item: any) => {
       if (!item.book) {
         console.error("Missing book data:", item);
       }

@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       // คำนวณ total price ใหม่
       const orderDetails = await tx.orderDetail.findMany({
         where: { orderId },
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       });
 
       const totalPrice = orderDetails.reduce(
-        (sum, detail) => sum + detail.price,
+        (sum: number, detail: any) => sum + detail.price,
         0
       );
 

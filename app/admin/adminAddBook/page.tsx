@@ -18,10 +18,10 @@ import {
   FileImageOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
-import { Book } from "@prisma/client";
+import { Book } from "@/utils/types";
 import supabase from "@/utils/supabaseClient";
 
-const adminAddBook = () => {
+const AdminAddBook = () => {
   const router = useRouter();
   const [form] = Form.useForm();
   const { TextArea } = Input;
@@ -35,7 +35,7 @@ const adminAddBook = () => {
     quantity: 0,
     imageURL:
       "https://dummyimage.com/150x150/ffffff/000000&text=please+select+img",
-    categoryId: "",
+    category: { name: "", categoryId: "" },
   });
   const [previewImage, setPreviewImage] = useState<string | null>(
     book.imageURL || null
@@ -327,4 +327,4 @@ const adminAddBook = () => {
   );
 };
 
-export default adminAddBook;
+export default AdminAddBook;

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Form, Input, Button, Modal, DatePicker, Select, message } from "antd";
 import dayjs from "dayjs";
 import { useSession } from "next-auth/react";
-import { User } from "@prisma/client";
+import { User } from "@/utils/types";
 
 const { Option } = Select;
 

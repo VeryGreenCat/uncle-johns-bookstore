@@ -1,6 +1,6 @@
 "use client";
 
-import { Book } from "@prisma/client";
+import { Book } from "@/utils/types";
 import { message } from "antd";
 import { useState, useEffect } from "react";
 import ShowBookContainer from "./ShowBookContainer";

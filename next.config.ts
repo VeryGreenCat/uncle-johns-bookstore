@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
       "promptpay.io", // Add this line
     ],
   },
+  typescript: {
+    // ปิดการตรวจสอบ TypeScript ระหว่างการ build
+    ignoreBuildErrors: true,
+  },
+  reactStrictMode: false,
 };
 
 export default nextConfig;

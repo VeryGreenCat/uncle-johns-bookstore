@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import ShowBookContainer from "./ShowBookContainer";
 import { message } from "antd";
-import { Book } from "@prisma/client";
+import { Book } from "@/utils/types";
 
 const OnSale = () => {
   const [books, setBooks] = useState<any[]>([]);

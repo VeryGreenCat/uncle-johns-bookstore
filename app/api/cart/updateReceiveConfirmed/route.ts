@@ -1,3 +1,4 @@
+import { prisma } from "@/utils/db";
 import { NextRequest, NextResponse } from "next/server"; // ใช้ NextRequest และ NextResponse
 
 export async function POST(req: NextRequest) {

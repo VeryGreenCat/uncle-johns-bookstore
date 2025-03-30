@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     // 2. ดึง orderDetail ทั้งหมดของทุก orderId
     const orderDetails = await prisma.orderDetail.findMany({
-      where: { orderId: { in: orders.map((order) => order.orderId) } },
+      where: { orderId: { in: orders.map((order: any) => order.orderId) } },
       select: {
         bookId: true,
         quantity: true,
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       },
     });
     // 3. คำนวณราคาทั้งหมดและจัดระเบียบข้อมูล
-    const items = orderDetails.map((detail) => ({
+    const items = orderDetails.map((detail: any) => ({
       bookId: detail.bookId,
       name: detail.book.name,
       quantity: detail.quantity,
