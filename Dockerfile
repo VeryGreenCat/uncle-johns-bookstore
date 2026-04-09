@@ -2,21 +2,23 @@
 FROM node:18-alpine
 
 # Set environment variables (place them on top)
-ENV SUPABASE_URL=https://kcshzfsfcfotmvkwgoqm.supabase.co
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_KEY
+ARG DATABASE_URL
+ARG DIRECT_URL
+ARG JWT_SECRET
+ARG NEXTAUTH_SECRET
 
-ENV SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtjc2h6ZnNmY2ZvdG12a3dnb3FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAyNDc0OTgsImV4cCI6MjA1NTgyMzQ5OH0.kBiEbglHdIIdAfyJSL7TSRYHZNWZIMrhSfSuO3dnaLo
+ENV NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL:-https://yynfzvxxyvivwcpcvvzk.supabase.co}
+ENV NEXT_PUBLIC_SUPABASE_KEY=${NEXT_PUBLIC_SUPABASE_KEY}
+ENV DATABASE_URL=${DATABASE_URL}
+ENV DIRECT_URL=${DIRECT_URL}
+ENV JWT_SECRET=${JWT_SECRET}
+ENV NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
 
-ENV DATABASE_URL="postgresql://postgres.kcshzfsfcfotmvkwgoqm:1FDu7eY6GDIuIjaL@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
-
-ENV DIRECT_URL="postgresql://postgres.kcshzfsfcfotmvkwgoqm:1FDu7eY6GDIuIjaL@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
-
-ENV JWT_SECRET=f0ba59d59a97893b8320db8901f387b034bcf21296f47bcf3c0d6e672ec18d68c1a4b8bb2f6d54c65c98a5ba205ad8de4
-
-ENV NEXTAUTH_SECRET="ZMvkzodg/a2GzttBsrkVfXRQuzE7Mq+Z6QuuPsn"
-
-ENV NEXT_PUBLIC_SUPABASE_URL=https://kcshzfsfcfotmvkwgoqm.supabase.co
-
-ENV NEXT_PUBLIC_SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtjc2h6ZnNmY2ZvdG12a3dnb3FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAyNDc0OTgsImV4cCI6MjA1NTgyMzQ5OH0.kBiEbglHdIIdAfyJSL7TSRYHZNWZIMrhSfSuO3dnaLo
+# Internal Supabase URL for backend use
+ENV SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+ENV SUPABASE_KEY=${NEXT_PUBLIC_SUPABASE_KEY}
 
 
 # ตั้งค่า Working Directory
